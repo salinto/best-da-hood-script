@@ -42,13 +42,11 @@ local SpinbotKey = Enum.KeyCode.Q
 local RapidFireEnabled = false
 local RapidFireKey = Enum.KeyCode.Space
 local Prediction = 0.165
-local GodModeEnabled = false
-local GodFistEnabled = false
 local SilentAimEnabled = false
 local ESPEnabled = false
 local FOVSize = 100
-
---// FOV Circle
+local GodModeEnabled = false
+local GodFistEnabled = false
 local FOVCircle = Drawing.new("Circle")
 FOVCircle.Color = Color3.fromRGB(255, 255, 255)
 FOVCircle.Thickness = 2
@@ -143,8 +141,8 @@ local MiscsTab = Window:CreateTab("Miscs", 4483362458)
 local CombatSection = CombatTab:CreateSection("Main Combat Features")
 local MiscsSection = MiscsTab:CreateSection("Visuals and Aim Assists")
 
--- Miscs Tab Toggles and Sliders
-MiscsTab:CreateToggle({
+-- Combat Tab Toggles
+CombatTab:CreateToggle({
     Name = "Enable Silent Aim",
     CurrentValue = false,
     Callback = function(Value)
@@ -152,14 +150,42 @@ MiscsTab:CreateToggle({
     end,
 })
 
-MiscsTab:CreateToggle({
-    Name = "Enable Skeleton ESP",
+CombatTab:CreateToggle({
+    Name = "Enable Spinbot",
     CurrentValue = false,
     Callback = function(Value)
-        ESPEnabled = Value
+        SpinbotEnabled = Value
     end,
 })
 
+CombatTab:CreateSlider({
+    Name = "Spinbot Speed",
+    Range = {0, 200},
+    Increment = 5,
+    Suffix = "°/s",
+    CurrentValue = SpinbotSpeed,
+    Callback = function(Value)
+        SpinbotSpeed = Value
+    end,
+})
+
+CombatTab:CreateToggle({
+    Name = "Enable God Mode",
+    CurrentValue = false,
+    Callback = function(Value)
+        GodModeEnabled = Value
+    end,
+})
+
+CombatTab:CreateToggle({
+    Name = "Enable God Fist",
+    CurrentValue = false,
+    Callback = function(Value)
+        GodFistEnabled = Value
+    end,
+})
+
+-- Miscs Tab Toggles and Sliders
 MiscsTab:CreateToggle({
     Name = "Show FOV Circle",
     CurrentValue = false,
@@ -180,37 +206,10 @@ MiscsTab:CreateSlider({
 })
 
 MiscsTab:CreateToggle({
-    Name = "Enable God Mode",
+    Name = "Enable Skeleton ESP",
     CurrentValue = false,
     Callback = function(Value)
-        GodModeEnabled = Value
-    end,
-})
-
-MiscsTab:CreateToggle({
-    Name = "Enable God Fist",
-    CurrentValue = false,
-    Callback = function(Value)
-        GodFistEnabled = Value
-    end,
-})
-
-MiscsTab:CreateToggle({
-    Name = "Enable Spinbot",
-    CurrentValue = false,
-    Callback = function(Value)
-        SpinbotEnabled = Value
-    end,
-})
-
-MiscsTab:CreateSlider({
-    Name = "Spinbot Speed",
-    Range = {0, 200},
-    Increment = 5,
-    Suffix = "°/s",
-    CurrentValue = SpinbotSpeed,
-    Callback = function(Value)
-        SpinbotSpeed = Value
+        ESPEnabled = Value
     end,
 })
 
@@ -221,11 +220,17 @@ RunService.RenderStepped:Connect(function()
         FOVCircle.Radius = FOVSize
     end
 
-    -- Implement Spinbot
+    -- Implement Spinbot (Spinning around the target in the air)
     if SpinbotEnabled then
         local character = LocalPlayer.Character
-        if character and character:FindFirstChild("HumanoidRootPart") then
-            character.HumanoidRootPart.CFrame *= CFrame.Angles(0, math.rad(SpinbotSpeed), 0)
+        local closest = getClosestPlayer()
+        if character and closest then
+            local targetPosition = closest.Character.HumanoidRootPart.Position
+            local characterPosition = character.HumanoidRootPart.Position
+            local direction = (targetPosition - characterPosition).unit
+
+            -- Make the character spin around the target
+            character.HumanoidRootPart.CFrame = CFrame.new(characterPosition) * CFrame.Angles(0, math.rad(SpinbotSpeed), 0)
         end
     end
 
