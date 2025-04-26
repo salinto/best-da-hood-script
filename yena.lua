@@ -34,14 +34,13 @@ local Camera = workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
---// Variables
+--// Variables for toggles and keybinds
 local ForcehitEnabled = false
 local SpinbotEnabled = false
 local SpinbotSpeed = 50
 local SpinbotKey = Enum.KeyCode.Q
 local RapidFireEnabled = false
 local RapidFireKey = Enum.KeyCode.Space
-local Prediction = 0.165
 local SilentAimEnabled = false
 local ESPEnabled = false
 local FOVSize = 100
@@ -54,87 +53,7 @@ FOVCircle.Filled = false
 FOVCircle.Transparency = 0.5
 FOVCircle.Visible = false
 
---// ESP Skeletons (Renamed to just ESP)
-local ESP = {}
-
-local function createESP(player)
-    local espLines = {}
-    for _, partName in ipairs({"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}) do
-        local line = Drawing.new("Line")
-        line.Color = Color3.fromRGB(255, 255, 255)
-        line.Thickness = 1
-        line.Transparency = 1
-        espLines[partName] = line
-    end
-    ESP[player] = espLines
-end
-
-local function removeESP(player)
-    if ESP[player] then
-        for _, line in pairs(ESP[player]) do
-            line:Remove()
-        end
-        ESP[player] = nil
-    end
-end
-
-Players.PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(function()
-        createESP(player)
-    end)
-end)
-
-Players.PlayerRemoving:Connect(function(player)
-    removeESP(player)
-end)
-
-for _, player in ipairs(Players:GetPlayers()) do
-    if player ~= LocalPlayer then
-        createESP(player)
-    end
-end
-
---// Closest Player Function
-local function getClosestPlayer()
-    local closestPlayer = nil
-    local closestDistance = math.huge
-
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            local pos, onScreen = Camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
-            if onScreen then
-                local distance = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(pos.X, pos.Y)).Magnitude
-                if distance < closestDistance then
-                    closestDistance = distance
-                    closestPlayer = player
-                end
-            end
-        end
-    end
-
-    return closestPlayer
-end
-
---// Silent Aim Hook
-local __namecall
-__namecall = hookmetamethod(game, "__namecall", function(self, ...)
-    local method = getnamecallmethod()
-    local args = {...}
-
-    if tostring(self) == "HitPart" and method == "FireServer" then
-        local closest = getClosestPlayer()
-        if closest and closest.Character and closest.Character:FindFirstChild("HumanoidRootPart") then
-            local predPos = closest.Character.HumanoidRootPart.Position + (closest.Character.HumanoidRootPart.Velocity * Prediction)
-            args[1] = closest.Character.HumanoidRootPart
-            args[2] = predPos
-            return self.FireServer(self, unpack(args))
-        end
-    end
-
-    return __namecall(self, ...)
-end)
-
---// UI Tabs and Sections
+--// Key Bindings UI
 local CombatTab = Window:CreateTab("Combat", 4483362458)
 local MiscsTab = Window:CreateTab("Miscs", 4483362458)
 
@@ -213,6 +132,48 @@ MiscsTab:CreateToggle({
     end,
 })
 
+--// Keybind UI for Spinbot and other features
+CombatTab:CreateKeybind({
+    Name = "Spinbot Key",
+    CurrentKey = SpinbotKey,
+    Callback = function(Key)
+        SpinbotKey = Key
+    end,
+})
+
+CombatTab:CreateKeybind({
+    Name = "Rapid Fire Key",
+    CurrentKey = RapidFireKey,
+    Callback = function(Key)
+        RapidFireKey = Key
+    end,
+})
+
+MiscsTab:CreateKeybind({
+    Name = "Silent Aim Key",
+    CurrentKey = Enum.KeyCode.E,
+    Callback = function(Key)
+        SilentAimEnabled = not SilentAimEnabled  -- Toggle on key press
+    end,
+})
+
+--// Function to handle keypresses for toggling
+local UserInputService = game:GetService("UserInputService")
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+
+    -- Spinbot toggle on key press
+    if input.KeyCode == SpinbotKey then
+        SpinbotEnabled = not SpinbotEnabled
+    end
+
+    -- Rapid Fire toggle on key press
+    if input.KeyCode == RapidFireKey then
+        RapidFireEnabled = not RapidFireEnabled
+    end
+end)
+
 --// Render Loop
 RunService.RenderStepped:Connect(function()
     if FOVCircle.Visible then
@@ -265,4 +226,10 @@ RunService.RenderStepped:Connect(function()
                     end
                 else
                     for _, line in pairs(skeleton) do
-                        line.Visible
+                        line.Visible = false
+                    end
+                end
+            end
+        end
+    end
+end)
