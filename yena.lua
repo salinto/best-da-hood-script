@@ -46,6 +46,7 @@ local GodModeEnabled = false
 local GodFistEnabled = false
 local SilentAimEnabled = false
 local ESPEnabled = false
+local FOVSize = 100
 
 --// FOV Circle
 local FOVCircle = Drawing.new("Circle")
@@ -139,13 +140,13 @@ end)
 local CombatTab = Window:CreateTab("Combat", 4483362458)
 local MiscsTab = Window:CreateTab("Miscs", 4483362458)
 
--- Ensure that the Misc section is created
+-- Ensure that the Miscs tab and section are being created
 print("MiscsTab Created")
 
 local CombatSection = CombatTab:CreateSection("Main Combat Features")
 local MiscsSection = MiscsTab:CreateSection("Visuals and Aim Assists")
 
--- Ensure the Misc section is visible
+-- Now, we add the toggles and sliders for the Miscs Tab
 MiscsTab:CreateToggle({
     Name = "Enable Silent Aim",
     CurrentValue = false,
@@ -175,9 +176,44 @@ MiscsTab:CreateSlider({
     Range = {50, 500},
     Increment = 5,
     Suffix = "px",
-    CurrentValue = 100,
+    CurrentValue = FOVSize,
     Callback = function(Value)
         FOVSize = Value
+    end,
+})
+
+MiscsTab:CreateToggle({
+    Name = "Enable God Mode",
+    CurrentValue = false,
+    Callback = function(Value)
+        GodModeEnabled = Value
+    end,
+})
+
+MiscsTab:CreateToggle({
+    Name = "Enable God Fist",
+    CurrentValue = false,
+    Callback = function(Value)
+        GodFistEnabled = Value
+    end,
+})
+
+MiscsTab:CreateToggle({
+    Name = "Enable Spinbot",
+    CurrentValue = false,
+    Callback = function(Value)
+        SpinbotEnabled = Value
+    end,
+})
+
+MiscsTab:CreateSlider({
+    Name = "Spinbot Speed",
+    Range = {0, 200},
+    Increment = 5,
+    Suffix = "°/s",
+    CurrentValue = SpinbotSpeed,
+    Callback = function(Value)
+        SpinbotSpeed = Value
     end,
 })
 
@@ -188,44 +224,11 @@ RunService.RenderStepped:Connect(function()
         FOVCircle.Radius = FOVSize
     end
 
-    if SilentAimEnabled then
-        -- Silent aim logic here
-    end
-
-    -- ESP Skeletons
-    for player, espLines in pairs(ESP) do
-        local character = player.Character
-        if character and ESPEnabled then
-            local rootPos, onScreen = Camera:WorldToViewportPoint(character.HumanoidRootPart.Position)
-            if onScreen then
-                local parts = {
-                    Head = character:FindFirstChild("Head"),
-                    Torso = character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso"),
-                    ["Left Arm"] = character:FindFirstChild("LeftUpperArm") or character:FindFirstChild("Left Arm"),
-                    ["Right Arm"] = character:FindFirstChild("RightUpperArm") or character:FindFirstChild("Right Arm"),
-                    ["Left Leg"] = character:FindFirstChild("LeftUpperLeg") or character:FindFirstChild("Left Leg"),
-                    ["Right Leg"] = character:FindFirstChild("RightUpperLeg") or character:FindFirstChild("Right Leg"),
-                }
-
-                -- Update ESP skeleton
-                for partName, part in pairs(parts) do
-                    if part then
-                        espLines[partName].From = Camera:WorldToViewportPoint(part.Position)
-                        espLines[partName].To = Camera:WorldToViewportPoint(parts.Torso.Position)
-                        espLines[partName].Visible = true
-                    end
-                end
-            else
-                -- Hide ESP skeleton
-                for _, line in pairs(espLines) do
-                    line.Visible = false
-                end
-            end
-        else
-            -- Hide ESP skeleton
-            for _, line in pairs(espLines) do
-                line.Visible = false
-            end
+    -- Implement Spinbot
+    if SpinbotEnabled then
+        local character = LocalPlayer.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            character.HumanoidRootPart.CFrame *= CFrame.Angles(0, math.rad(SpinbotSpeed), 0)
         end
     end
 
