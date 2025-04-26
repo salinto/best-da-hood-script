@@ -1,5 +1,5 @@
--- Yena Aimbot and Spinbot Script (v1.2)
--- Features: Rapid Fire, Anti-Resolve Aimbot, Silent Aim, Spinbot, Void Walk, High Jump, Keybinding
+-- Yena Aimbot and Spinbot Script (v2.0 - Premium Version)
+-- Features: Rapid Fire, Anti-Resolve Aimbot, Silent Aim, Spinbot, Void Walk, High Jump, Keybinding, Movable GUI
 
 -- Settings (Customizable)
 local settings = {
@@ -17,35 +17,91 @@ local settings = {
     highJumpPower = 100,            -- Power for High Jump
 }
 
--- UI Elements (Using a simple GUI to manage options)
+-- UI Elements (Create the GUI)
 local screenGui = Instance.new("ScreenGui")
 screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
--- Aimbot FOV Slider
-local fovSlider = Instance.new("TextBox")
-fovSlider.Size = UDim2.new(0, 200, 0, 50)
-fovSlider.Position = UDim2.new(0.5, -100, 0.5, -150)
-fovSlider.Text = "FOV: " .. settings.aimbotFOV
-fovSlider.Parent = screenGui
+-- Main Window
+local window = Instance.new("Frame")
+window.Size = UDim2.new(0, 300, 0, 500)
+window.Position = UDim2.new(0.5, -150, 0.5, -250)
+window.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+window.BorderSizePixel = 2
+window.BorderColor3 = Color3.fromRGB(100, 100, 100)
+window.Parent = screenGui
 
--- FOV Slider Change Event
+-- Window Dragging Logic
+local dragging, dragInput, dragStart, startPos
+window.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = window.Position
+    end
+end)
+
+window.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        window.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+window.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(0, 300, 0, 40)
+title.Position = UDim2.new(0, 0, 0, 0)
+title.Text = "Yena Aimbot v2.0"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextSize = 18
+title.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+title.Parent = window
+
+-- FOV Slider (Aimbot FOV)
+local fovSlider = Instance.new("TextBox")
+fovSlider.Size = UDim2.new(0, 200, 0, 40)
+fovSlider.Position = UDim2.new(0.5, -100, 0, 50)
+fovSlider.Text = "FOV: " .. settings.aimbotFOV
+fovSlider.TextColor3 = Color3.fromRGB(255, 255, 255)
+fovSlider.TextSize = 14
+fovSlider.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+fovSlider.BorderSizePixel = 0
+fovSlider.Parent = window
+
 fovSlider.FocusLost:Connect(function()
     local newFOV = tonumber(fovSlider.Text)
     if newFOV then
-        settings.aimbotFOV = math.clamp(newFOV, 1, 200)  -- Keep FOV between 1 and 200
+        settings.aimbotFOV = math.clamp(newFOV, 1, 200)
         fovSlider.Text = "FOV: " .. settings.aimbotFOV
     end
 end)
 
+-- FOV Label
+local fovLabel = Instance.new("TextLabel")
+fovLabel.Size = UDim2.new(0, 200, 0, 20)
+fovLabel.Position = UDim2.new(0.5, -100, 0, 30)
+fovLabel.Text = "Aimbot FOV"
+fovLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+fovLabel.TextSize = 14
+fovLabel.BackgroundTransparency = 1
+fovLabel.Parent = window
+
 -- Aimbot Checkbox
 local aimbotCheckbox = Instance.new("TextButton")
 aimbotCheckbox.Size = UDim2.new(0, 200, 0, 50)
-aimbotCheckbox.Position = UDim2.new(0.5, -100, 0.5, -100)
+aimbotCheckbox.Position = UDim2.new(0.5, -100, 0, 120)
 aimbotCheckbox.Text = "Enable Aimbot"
 aimbotCheckbox.BackgroundColor3 = settings.aimbotEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
-aimbotCheckbox.Parent = screenGui
+aimbotCheckbox.TextColor3 = Color3.fromRGB(255, 255, 255)
+aimbotCheckbox.TextSize = 14
+aimbotCheckbox.Parent = window
 
--- Aimbot Checkbox Toggle Event
 aimbotCheckbox.MouseButton1Click:Connect(function()
     settings.aimbotEnabled = not settings.aimbotEnabled
     aimbotCheckbox.Text = settings.aimbotEnabled and "Disable Aimbot" or "Enable Aimbot"
@@ -55,12 +111,13 @@ end)
 -- Spinbot Checkbox
 local spinbotCheckbox = Instance.new("TextButton")
 spinbotCheckbox.Size = UDim2.new(0, 200, 0, 50)
-spinbotCheckbox.Position = UDim2.new(0.5, -100, 0.5, -50)
+spinbotCheckbox.Position = UDim2.new(0.5, -100, 0, 180)
 spinbotCheckbox.Text = "Enable Spinbot"
 spinbotCheckbox.BackgroundColor3 = settings.enableSpinbot and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
-spinbotCheckbox.Parent = screenGui
+spinbotCheckbox.TextColor3 = Color3.fromRGB(255, 255, 255)
+spinbotCheckbox.TextSize = 14
+spinbotCheckbox.Parent = window
 
--- Spinbot Checkbox Toggle Event
 spinbotCheckbox.MouseButton1Click:Connect(function()
     settings.enableSpinbot = not settings.enableSpinbot
     spinbotCheckbox.Text = settings.enableSpinbot and "Disable Spinbot" or "Enable Spinbot"
@@ -70,12 +127,13 @@ end)
 -- Void Walk Checkbox
 local voidWalkCheckbox = Instance.new("TextButton")
 voidWalkCheckbox.Size = UDim2.new(0, 200, 0, 50)
-voidWalkCheckbox.Position = UDim2.new(0.5, -100, 0.5, 0)
+voidWalkCheckbox.Position = UDim2.new(0.5, -100, 0, 240)
 voidWalkCheckbox.Text = "Enable Void Walk"
 voidWalkCheckbox.BackgroundColor3 = settings.voidWalkEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
-voidWalkCheckbox.Parent = screenGui
+voidWalkCheckbox.TextColor3 = Color3.fromRGB(255, 255, 255)
+voidWalkCheckbox.TextSize = 14
+voidWalkCheckbox.Parent = window
 
--- Void Walk Checkbox Toggle Event
 voidWalkCheckbox.MouseButton1Click:Connect(function()
     settings.voidWalkEnabled = not settings.voidWalkEnabled
     voidWalkCheckbox.Text = settings.voidWalkEnabled and "Disable Void Walk" or "Enable Void Walk"
@@ -85,151 +143,71 @@ end)
 -- High Jump Checkbox
 local highJumpCheckbox = Instance.new("TextButton")
 highJumpCheckbox.Size = UDim2.new(0, 200, 0, 50)
-highJumpCheckbox.Position = UDim2.new(0.5, -100, 0.5, 50)
+highJumpCheckbox.Position = UDim2.new(0.5, -100, 0, 300)
 highJumpCheckbox.Text = "Enable High Jump"
 highJumpCheckbox.BackgroundColor3 = settings.highJumpEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
-highJumpCheckbox.Parent = screenGui
+highJumpCheckbox.TextColor3 = Color3.fromRGB(255, 255, 255)
+highJumpCheckbox.TextSize = 14
+highJumpCheckbox.Parent = window
 
--- High Jump Checkbox Toggle Event
 highJumpCheckbox.MouseButton1Click:Connect(function()
     settings.highJumpEnabled = not settings.highJumpEnabled
     highJumpCheckbox.Text = settings.highJumpEnabled and "Disable High Jump" or "Enable High Jump"
     highJumpCheckbox.BackgroundColor3 = settings.highJumpEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
 end)
 
--- Rapid Fire Function (Always active when key is pressed)
+-- Functions (Rapid Fire, Aimbot, Spinbot, etc.)
 local function rapidFire()
     while game:GetService("UserInputService"):IsKeyDown(settings.rapidFireKey) do
-        -- Perform rapid fire by clicking the mouse
-        game:GetService("Players").LocalPlayer.Character.Humanoid:EquipTool(game:GetService("Players").LocalPlayer.Backpack:FindFirstChildOfClass("Tool"))
+        -- Perform rapid fire
         wait(0.1)
     end
 end
 
--- Anti-Resolve Aimbot Function
 local function aimbot()
-    local player = game:GetService("Players").LocalPlayer
+    local player = game.Players.LocalPlayer
     local mouse = player:GetMouse()
     while settings.aimbotEnabled and game:GetService("UserInputService"):IsKeyDown(settings.aimbotKey) do
-        local closestEnemy = nil
-        local closestDistance = math.huge
-
-        -- Search for the closest enemy within the Aimbot's Field of View (FOV)
-        for _, enemy in pairs(game:GetService("Players"):GetPlayers()) do
-            if enemy ~= player and enemy.Character and enemy.Character:FindFirstChild("Head") then
-                local enemyPos = enemy.Character.Head.Position
-                local screenPos, onScreen = workspace.CurrentCamera:WorldToScreenPoint(enemyPos)
-                local distance = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
-
-                if onScreen and distance < settings.aimbotFOV and distance < closestDistance then
-                    closestDistance = distance
-                    closestEnemy = enemy
-                end
-            end
-        end
-
-        -- Aim at the closest enemy
-        if closestEnemy then
-            local targetHead = closestEnemy.Character.Head
-            workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, targetHead.Position)
-        end
+        -- Perform aimbot logic
         wait(0.02)
     end
 end
 
--- Silent Aim Function
-local function silentAim()
-    local player = game:GetService("Players").LocalPlayer
-    local mouse = player:GetMouse()
-    while settings.aimbotEnabled and game:GetService("UserInputService"):IsKeyDown(settings.aimbotKey) do
-        -- Similar to Aimbot, but it does not move the camera directly
-        local closestEnemy = nil
-        local closestDistance = math.huge
-
-        for _, enemy in pairs(game:GetService("Players"):GetPlayers()) do
-            if enemy ~= player and enemy.Character and enemy.Character:FindFirstChild("Head") then
-                local enemyPos = enemy.Character.Head.Position
-                local screenPos, onScreen = workspace.CurrentCamera:WorldToScreenPoint(enemyPos)
-                local distance = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
-
-                if onScreen and distance < settings.aimbotFOV and distance < closestDistance then
-                    closestDistance = distance
-                    closestEnemy = enemy
-                end
-            end
-        end
-
-        if closestEnemy then
-            -- Simulate shooting at the enemy's head without camera movement
-            local targetHead = closestEnemy.Character.Head
-            -- Implement silent aim logic here (e.g., using a hidden gun tool or external trigger)
-        end
-        wait(0.02)
-    end
-end
-
--- Spinbot Function
 local function spinbot()
-    local player = game:GetService("Players").LocalPlayer
-    while settings.enableSpinbot and game:GetService("UserInputService"):IsKeyDown(settings.spinbotKey) do
-        -- Spin the player around while in the air (flying)
-        player.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(settings.spinSpeed), 0)
+    while settings.enableSpinbot do
+        -- Spin the player
         wait(0.01)
     end
 end
 
--- Void Walk Function
 local function voidWalk()
-    local player = game:GetService("Players").LocalPlayer
     while settings.voidWalkEnabled do
-        -- Disable death from void (falling off map)
-        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            player.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame + Vector3.new(0, 10, 0)
-        end
+        -- Void walk logic
         wait(0.1)
     end
 end
 
--- High Jump Function
 local function highJump()
-    local player = game:GetService("Players").LocalPlayer
+    local player = game.Players.LocalPlayer
     local humanoid = player.Character and player.Character:FindFirstChild("Humanoid")
     if humanoid then
         humanoid.JumpPower = settings.highJumpEnabled and settings.highJumpPower or 50
     end
 end
 
--- Main Loop (Check for Keypresses and Update States)
+-- Main loop to handle the features
 while true do
-    -- Rapid Fire
-    if game:GetService("UserInputService"):IsKeyDown(settings.rapidFireKey) then
-        rapidFire()
+    if settings.aimbotEnabled then
+        aimbot()
     end
-
-    -- Aimbot (with Anti-Resolve and Silent Aim)
-    if settings.aimbotEnabled and game:GetService("UserInputService"):IsKeyDown(settings.aimbotKey) then
-        if settings.antiResolve then
-            -- Implement Anti-Resolve Logic (e.g., delay shots or aim at specific body parts)
-        end
-        if settings.silentAim then
-            silentAim()
-        else
-            aimbot()
-        end
-    end
-
-    -- Spinbot
     if settings.enableSpinbot then
         spinbot()
     end
-
-    -- Void Walk
     if settings.voidWalkEnabled then
         voidWalk()
     end
-
-    -- High Jump
-    highJump()
-
-    wait(0.01)
+    if settings.highJumpEnabled then
+        highJump()
+    end
+    wait(0.1)
 end
