@@ -1,207 +1,103 @@
-local TweenService = game:GetService('TweenService')
-local UserInputService = game:GetService('UserInputService')
-
--- Ensure the library is loaded
+-- Load the libraries
 local Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Library.lua'))()
 local ThemeManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/addons/ThemeManager.lua'))()
 local SaveManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/addons/SaveManager.lua'))()
 
--- Toggle for Mouse Cursor Visibility
-local mouseCursorEnabled = true -- Start with the cursor enabled
+-- Initialize the library
+local Window = Library.CreateLib("Roblox Aimbot & Visual Settings", "Dark theme")
 
--- Function to toggle the mouse cursor
-local function toggleMouseCursor()
-    mouseCursorEnabled = not mouseCursorEnabled
-    UserInputService.MouseIconEnabled = mouseCursorEnabled
-end
+-- Apply the theme
+ThemeManager.ApplyTheme("Dark")  -- You can change this to other theme names like "Light"
 
--- Basic GUI Setup for Executing in Acreus X and Code X
-local Window = Library:CreateWindow({
-    Title = 'Etiquette Internal',
-    Center = true,
-    AutoShow = true,
-    Size = Vector2.new(320, 240),  -- Window size for mobile and PC
-})
+-- Create a save manager to persist settings
+local Settings = SaveManager.New("AimbotVisualSettings")
 
--- Add a button to toggle the cursor visibility
-Window:AddButton('Toggle Cursor', function()
-    toggleMouseCursor()
-end)
+-- Create the tabs for the GUI
+local AimbotTab = Window:NewTab("Aimbot")
+local VisualTab = Window:NewTab("Visual Settings")
 
--- Create Tabs
-local Tabs = Window:AddTab('Main')
-
--- Add sub-tabs for Aimbot, Misc, Visuals, and Settings
-local AimbotTab = Tabs:AddTab('Aimbot')
-local MiscTab = Tabs:AddTab('Misc')
-local VisualsTab = Tabs:AddTab('Visuals')
-local SettingsTab = Tabs:AddTab('Settings')
-
--- Aimbot Settings Tab
-local AimbotGroup = AimbotTab:AddLeftGroupbox('Aimbot')
-
-AimbotGroup:AddToggle('Enable', { Text = 'Enable', Default = false })
-AimbotGroup:AddToggle('ClosestPart', { Text = 'Closest Part', Default = true })
-AimbotGroup:AddToggle('StickyAim', { Text = 'Sticky Aim', Default = false })
-
-AimbotGroup:AddDivider()
-
-AimbotGroup:AddSlider('PredictionX', {
-    Text = 'Prediction X',
-    Default = 5,
-    Min = 0,
-    Max = 10,
-    Rounding = 1,
-})
-
-AimbotGroup:AddSlider('PredictionY', {
-    Text = 'Prediction Y',
-    Default = 5,
-    Min = 0,
-    Max = 10,
-    Rounding = 1,
-})
-
-AimbotGroup:AddDivider()
-
-AimbotGroup:AddSlider('FOV', {
-    Text = 'Aimbot FOV',
-    Default = 100,
-    Min = 10,
-    Max = 300,
-    Rounding = 0,
-})
-
-AimbotGroup:AddDropdown('HitPart', {
-    Values = { 'Head', 'Torso', 'Legs' },
-    Default = 1,
-    Multi = false,
-    Text = 'Hit Part',
-})
-
--- Misc Settings Tab
-local MiscGroup = MiscTab:AddLeftGroupbox('Miscellaneous')
-
-MiscGroup:AddToggle('AutoJump', { Text = 'Auto Jump', Default = false })
-MiscGroup:AddToggle('InfiniteJump', { Text = 'Infinite Jump', Default = false })
-MiscGroup:AddToggle('AntiAfk', { Text = 'Anti AFK', Default = true })
-
-MiscGroup:AddDivider()
-
-MiscGroup:AddButton('Clear Effects', function()
-    -- Custom effect clearing function
-    print('Clearing visual effects...')
-end)
-
--- Visuals Settings Tab
-local VisualsGroup = VisualsTab:AddLeftGroupbox('Visuals')
-
-VisualsGroup:AddToggle('ESP', { Text = 'ESP', Default = false })
-VisualsGroup:AddToggle('PlayerNames', { Text = 'Show Player Names', Default = true })
-
-VisualsGroup:AddDivider()
-
-VisualsGroup:AddColorPicker('ESPColor', {
-    Text = 'ESP Color',
-    Default = Color3.fromRGB(255, 0, 0),
-})
-
-VisualsGroup:AddSlider('ESPSize', {
-    Text = 'ESP Size',
-    Default = 5,
-    Min = 1,
-    Max = 10,
-    Rounding = 1,
-})
-
--- Settings Tab
-local SettingsGroup = SettingsTab:AddLeftGroupbox('Settings')
-
-SettingsGroup:AddButton('Save Config', function()
-    -- Custom save function
-    print('Config saved!')
-end)
-
-SettingsGroup:AddButton('Load Config', function()
-    -- Custom load function
-    print('Config loaded!')
-end)
-
-SettingsGroup:AddDivider()
-
-SettingsGroup:AddToggle('Enable Sound', { Text = 'Enable Sound', Default = true })
-SettingsGroup:AddSlider('SoundVolume', {
-    Text = 'Sound Volume',
-    Default = 50,
-    Min = 0,
-    Max = 100,
-    Rounding = 1,
-})
-
--- Minimize Button for Window Resize
-local Minimized = false
-local FullSize = Window._window.Size
-local MinimizedSize = Vector2.new(320, 50)
-
-local function SmoothResize(sizeGoal)
-    local tween = TweenService:Create(Window._window, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = sizeGoal})
-    tween:Play()
-end
-
-local TitleBar = Window._window:FindFirstChild('Topbar')
-if TitleBar then
-    local MinimizeButton = Instance.new('TextButton')
-    MinimizeButton.Name = "MinimizeButton"
-    MinimizeButton.Size = UDim2.new(0, 30, 0, 30)
-    MinimizeButton.Position = UDim2.new(1, -50, 0, 5)
-    MinimizeButton.BackgroundTransparency = 0.5
-    MinimizeButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    MinimizeButton.Text = "-"
-    MinimizeButton.Font = Enum.Font.SourceSansBold
-    MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    MinimizeButton.TextSize = 24
-    MinimizeButton.Parent = TitleBar
-
-    MinimizeButton.MouseButton1Click:Connect(function()
-        Minimized = not Minimized
-        if Minimized then
-            SmoothResize(MinimizedSize)
-        else
-            SmoothResize(FullSize)
-        end
-    end)
-end
-
--- Theme and Save Manager
-ThemeManager:SetLibrary(Library)
-ThemeManager:LoadDefault()
-
-SaveManager:SetLibrary(Library)
-SaveManager:IgnoreThemeSettings()
-SaveManager:SetFolder('EtiquetteInternal')
-SaveManager:BuildConfigSection(SettingsTab)
-
--- Make the window draggable
-local dragging = false
-local dragInput, dragStart, startPos
-
-TitleBar.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = Window._window.Position
-
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
+-- Create sections inside the Aimbot tab
+local AimbotSection = AimbotTab:NewSection("Aimbot Controls")
+AimbotSection:NewToggle("Enable Aimbot", "Toggle aimbot on/off", function(state)
+    if state then
+        print("Aimbot enabled!")
+        -- Code to activate the aimbot goes here
+        Settings.AimbotEnabled = true
+    else
+        print("Aimbot disabled.")
+        -- Code to deactivate the aimbot goes here
+        Settings.AimbotEnabled = false
     end
 end)
 
-TitleBar.InputChanged:Connect(function(input)
-    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = input.Position - dragStart
-        Window._window.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+AimbotSection:NewSlider("Aimbot FOV", "Adjust the FOV for the aimbot", 180, 0, function(value)
+    print("Aimbot FOV set to " .. value)
+    Settings.AimbotFOV = value
+end)
+
+-- Create sections inside the Visual Settings tab
+local VisualSection = VisualTab:NewSection("Visual Controls")
+
+VisualSection:NewToggle("Enable ESP", "Toggle ESP (wallhack) on/off", function(state)
+    if state then
+        print("ESP enabled!")
+        -- Code to enable ESP goes here
+        Settings.ESPEnabled = true
+    else
+        print("ESP disabled.")
+        -- Code to disable ESP goes here
+        Settings.ESPEnabled = false
     end
 end)
+
+VisualSection:NewToggle("Show FOV Circle", "Toggle FOV circle display", function(state)
+    if state then
+        print("FOV circle displayed!")
+        -- Code to show FOV circle goes here
+        Settings.ShowFOV = true
+    else
+        print("FOV circle hidden.")
+        -- Code to hide FOV circle goes here
+        Settings.ShowFOV = false
+    end
+end)
+
+VisualSection:NewColorPicker("FOV Circle Color", "Pick the color for the FOV circle", Color3.fromRGB(255, 0, 0), function(color)
+    print("FOV circle color set to " .. tostring(color))
+    Settings.FOVColor = color
+end)
+
+-- Load saved settings if available
+if Settings.AimbotEnabled then
+    print("Aimbot is enabled from saved settings.")
+end
+if Settings.ESPEnabled then
+    print("ESP is enabled from saved settings.")
+end
+if Settings.FOVColor then
+    print("FOV circle color is " .. tostring(Settings.FOVColor))
+end
+
+-- Create a reset button
+VisualSection:NewButton("Reset Settings", "Reset all visual settings to default", function()
+    Settings:Reset()
+    print("Settings have been reset!")
+end)
+
+-- Finalize the GUI creation
+Library.SaveSettings()
+
+-- Example function to handle the aimbot logic (just a placeholder)
+function ActivateAimbot()
+    -- Example: Aimbot logic for targeting enemies
+    print("Aimbot activated!")
+    -- Add your aimbot code here to target enemies within the FOV
+end
+
+-- Example function to handle ESP logic (just a placeholder)
+function ActivateESP()
+    -- Example: ESP logic to draw boxes around players
+    print("ESP activated!")
+    -- Add your ESP code here to render boxes or outlines on players
+end
+
