@@ -2,12 +2,12 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "juggy | Premium v1.2",
-   LoadingTitle = "juggy | Loading...",
-   LoadingSubtitle = "by juggy dev",
+   Name = "plaq | Premium v1.2",
+   LoadingTitle = "plaq | Loading...",
+   LoadingSubtitle = "by plaq dev",
    ConfigurationSaving = {
       Enabled = true,
-      FolderName = "juggyPremium",
+      FolderName = "PlaqPremium",
       FileName = "Settings"
    },
    Discord = {
@@ -17,13 +17,13 @@ local Window = Rayfield:CreateWindow({
    },
    KeySystem = true,
    KeySettings = {
-      Title = "juggy | Key System",
-      Subtitle = "Key = jugjug",
+      Title = "plaq | Key System",
+      Subtitle = "Key = plaqisgod",
       Note = "Join Discord for key.",
-      FileName = "jugggy",
+      FileName = "plaqKeySave",
       SaveKey = true,
       GrabKeyFromSite = false,
-      Key = {"jugjug"}
+      Key = {"plaqisgod"}
    }
 })
 
@@ -38,16 +38,12 @@ local Mouse = LocalPlayer:GetMouse()
 local ForcehitEnabled = false
 local SpinbotEnabled = false
 local SpinbotSpeed = 50
-local VanishEnabled = false
-local VanishMethod = "Float"
-local AimbotEnabled = false
-local FOVEnabled = false
-local FOVSize = 100
-local ESPEnabled = false
-local SilentAimEnabled = false
+local SpinbotKey = Enum.KeyCode.Q  -- Default key for Spinbot
 local RapidFireEnabled = false
-local RapidFireKey = Enum.KeyCode.Space  -- Default key for rapid fire
+local RapidFireKey = Enum.KeyCode.Space  -- Default key for Rapid Fire
 local Prediction = 0.165
+local GodModeEnabled = false
+local GodFistEnabled = false
 
 --// FOV Circle
 local FOVCircle = Drawing.new("Circle")
@@ -107,7 +103,7 @@ local function getClosestPlayer()
             local pos, onScreen = Camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
             if onScreen then
                 local distance = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(pos.X, pos.Y)).Magnitude
-                if distance < closestDistance and distance <= FOVSize then
+                if distance < closestDistance then
                     closestDistance = distance
                     closestPlayer = player
                 end
@@ -124,7 +120,7 @@ __namecall = hookmetamethod(game, "__namecall", function(self, ...)
     local method = getnamecallmethod()
     local args = {...}
 
-    if SilentAimEnabled and tostring(self) == "HitPart" and method == "FireServer" then
+    if tostring(self) == "HitPart" and method == "FireServer" then
         local closest = getClosestPlayer()
         if closest and closest.Character and closest.Character:FindFirstChild("HumanoidRootPart") then
             local predPos = closest.Character.HumanoidRootPart.Position + (closest.Character.HumanoidRootPart.Velocity * Prediction)
@@ -161,6 +157,14 @@ CombatTab:CreateToggle({
     end,
 })
 
+CombatTab:CreateKeybind({
+    Name = "Spinbot Key",
+    DefaultKey = SpinbotKey,
+    Callback = function(Key)
+        SpinbotKey = Key
+    end
+})
+
 CombatTab:CreateSlider({
     Name = "Spinbot Speed",
     Range = {0, 200},
@@ -181,7 +185,7 @@ CombatTab:CreateToggle({
 })
 
 CombatTab:CreateKeybind({
-    Name = "Choose Rapid Fire Key",
+    Name = "Rapid Fire Key",
     DefaultKey = RapidFireKey,
     Callback = function(Key)
         RapidFireKey = Key
@@ -189,19 +193,18 @@ CombatTab:CreateKeybind({
 })
 
 CombatTab:CreateToggle({
-    Name = "Enable Vanish",
+    Name = "God Mode",
     CurrentValue = false,
     Callback = function(Value)
-        VanishEnabled = Value
+        GodModeEnabled = Value
     end,
 })
 
-CombatTab:CreateDropdown({
-    Name = "Vanish Method",
-    Options = {"Float", "Blink", "Fade"},
-    CurrentOption = "Float",
-    Callback = function(Option)
-        VanishMethod = Option
+CombatTab:CreateToggle({
+    Name = "God Fist",
+    CurrentValue = false,
+    Callback = function(Value)
+        GodFistEnabled = Value
     end,
 })
 
@@ -218,7 +221,6 @@ MiscsTab:CreateToggle({
     Name = "Show FOV Circle",
     CurrentValue = false,
     Callback = function(Value)
-        FOVEnabled = Value
         FOVCircle.Visible = Value
     end,
 })
@@ -252,16 +254,20 @@ MiscsTab:CreateToggle({
 
 --// Render Loop
 RunService.RenderStepped:Connect(function()
-    if FOVEnabled then
+    if FOVCircle.Visible then
         FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y + 36)
         FOVCircle.Radius = FOVSize
     end
 
-    if SpinbotEnabled then
+    if SpinbotEnabled and UserInputService:IsKeyDown(SpinbotKey) then
         local character = LocalPlayer.Character
         if character and character:FindFirstChild("HumanoidRootPart") then
             character.HumanoidRootPart.CFrame *= CFrame.Angles(0, math.rad(SpinbotSpeed), 0)
         end
+    end
+
+    if RapidFireEnabled and UserInputService:IsKeyDown(RapidFireKey) then
+        -- Your rapid fire logic goes here
     end
 
     -- ESP Skeletons
@@ -299,5 +305,13 @@ RunService.RenderStepped:Connect(function()
                 line.Visible = false
             end
         end
+    end
+
+    -- God Mode & God Fist Logic (Example implementation)
+    if GodModeEnabled then
+        LocalPlayer.Character:FindFirstChild("Humanoid").Health = math.huge
+    end
+    if GodFistEnabled then
+        -- Implement God Fist logic (could involve instant KO or increased damage)
     end
 end)
