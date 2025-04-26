@@ -1,68 +1,278 @@
---// Load Rayfield Library
-local Rayfield
-local success, err = pcall(function()
-    Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-end)
+-- Load OrionLib
+local OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Orion/main/source'))()
 
-if not success then
-    warn("Rayfield library failed to load! Error: " .. err)
-    return
-end
+local Window = OrionLib:MakeWindow({
+    Name = "Isabelle2025",
+    HidePremium = false,
+    SaveConfig = true,
+    ConfigFolder = "Isabelle2025Config"
+})
 
---// Key system setup
-local correctKey = "JuggIsPro"  -- Set your key here
-local keyEntered = false  -- Flag to track if the key was entered
+-- MAIN TAB
+local MainTab = Window:MakeTab({
+    Name = "Main",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
 
---// Create the Key Input GUI (Before Rayfield GUI is visible)
-local screenGui = Instance.new("ScreenGui")
-screenGui.Parent = game.Players.LocalPlayer.PlayerGui
+-- VISUALS TAB
+local VisualsTab = Window:MakeTab({
+    Name = "Visuals",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
 
-local textBox = Instance.new("TextBox")
-textBox.Size = UDim2.new(0, 300, 0, 50)
-textBox.Position = UDim2.new(0.5, -150, 0.5, -100)
-textBox.Text = "Enter Key..."
-textBox.Parent = screenGui
+-- MISC TAB
+local MiscTab = Window:MakeTab({
+    Name = "Misc",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
 
-local submitButton = Instance.new("TextButton")
-submitButton.Size = UDim2.new(0, 300, 0, 50)
-submitButton.Position = UDim2.new(0.5, -150, 0.5, 50)
-submitButton.Text = "Submit"
-submitButton.Parent = screenGui
+-- SETTINGS TAB
+local SettingsTab = Window:MakeTab({
+    Name = "Settings",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
 
---// Key input callback function
-submitButton.MouseButton1Click:Connect(function()
-    local input = textBox.Text
-    if input == correctKey then
-        keyEntered = true
-        screenGui:Destroy()  -- Remove the key input screen
-        -- Create the Rayfield GUI after correct key
-        local Window = Rayfield:CreateWindow({
-            Name = "Jugg Premium GUI",
-            LoadingTitle = "Loading...",
-            LoadingSubtitle = "by Jugg Dev",
-            ConfigurationSaving = {
-                Enabled = true,
-                FolderName = "JuggPremium",
-                FileName = "Settings"
-            },
-            Discord = {
-                Enabled = false,
-                Invite = "",
-            },
-            KeySystem = false  -- Disable key system after key is entered
-        })
+-- Aimbot Misc Section
+MainTab:AddSection({Name = "Aimbot Misc"})
 
-        -- Create a basic button as an example of working GUI
-        Window:CreateButton({
-            Name = "Test Button",
-            Callback = function()
-                print("Test Button Clicked!")
-            end
-        })
-
-        -- Optional: Add more UI components here as needed
-        print("GUI Loaded Successfully!")
-    else
-        textBox.Text = "Incorrect Key! Try Again."
+local AimbotEnabled = false
+MainTab:AddToggle({
+    Name = "Enabled",
+    Default = false,
+    Callback = function(Value)
+        AimbotEnabled = Value
     end
-end)
+})
+
+MainTab:AddSlider({
+    Name = "Aimbot FOV",
+    Min = 0,
+    Max = 300,
+    Default = 100,
+    Color = Color3.fromRGB(255,255,255),
+    Increment = 1,
+    Callback = function(Value)
+        -- Set FOV
+    end
+})
+
+MainTab:AddSlider({
+    Name = "Smoothing Factor",
+    Min = 0,
+    Max = 5,
+    Default = 1,
+    Color = Color3.fromRGB(255,255,255),
+    Increment = 0.01,
+    Callback = function(Value)
+        -- Set smoothing
+    end
+})
+
+MainTab:AddSlider({
+    Name = "Prediction X",
+    Min = 0,
+    Max = 5,
+    Default = 1,
+    Color = Color3.fromRGB(255,255,255),
+    Increment = 0.01,
+    Callback = function(Value)
+        -- Prediction X
+    end
+})
+
+MainTab:AddSlider({
+    Name = "Prediction Y",
+    Min = 0,
+    Max = 5,
+    Default = 1,
+    Color = Color3.fromRGB(255,255,255),
+    Increment = 0.01,
+    Callback = function(Value)
+        -- Prediction Y
+    end
+})
+
+MainTab:AddDropdown({
+    Name = "Prediction Method",
+    Default = "Division",
+    Options = {"Division", "Addition", "Subtraction", "Multiplication"},
+    Callback = function(Value)
+        -- Method chosen
+    end
+})
+
+MainTab:AddDropdown({
+    Name = "Hitbox Priority",
+    Default = "Head",
+    Options = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"},
+    Callback = function(Value)
+        -- Hitbox part
+    end
+})
+
+MainTab:AddDropdown({
+    Name = "Method",
+    Default = "Mouse",
+    Options = {"Mouse", "Camera"},
+    Callback = function(Value)
+        -- Mouse/camera lock
+    end
+})
+
+MainTab:AddSection({Name = "Flags"})
+
+MainTab:AddToggle({
+    Name = "Teamcheck",
+    Default = false,
+    Callback = function(Value)
+        -- Teamcheck on/off
+    end
+})
+
+MainTab:AddToggle({
+    Name = "Healthcheck",
+    Default = false,
+    Callback = function(Value)
+        -- Healthcheck on/off
+    end
+})
+
+MainTab:AddToggle({
+    Name = "Invisible check",
+    Default = false,
+    Callback = function(Value)
+        -- Invisible check
+    end
+})
+
+-- Silent Aim Section
+MiscTab:AddSection({Name = "Silent Aim Misc"})
+
+local SilentAimEnabled = false
+MiscTab:AddToggle({
+    Name = "Enabled",
+    Default = false,
+    Callback = function(Value)
+        SilentAimEnabled = Value
+    end
+})
+
+MiscTab:AddSlider({
+    Name = "Silent FOV",
+    Min = 0,
+    Max = 300,
+    Default = 50,
+    Color = Color3.fromRGB(255,255,255),
+    Increment = 1,
+    Callback = function(Value)
+        -- Silent FOV set
+    end
+})
+
+MiscTab:AddSlider({
+    Name = "Hitchance (%)",
+    Min = 0,
+    Max = 100,
+    Default = 100,
+    Color = Color3.fromRGB(255,255,255),
+    Increment = 1,
+    Callback = function(Value)
+        -- Hitchance
+    end
+})
+
+MiscTab:AddSlider({
+    Name = "Prediction X",
+    Min = 0,
+    Max = 5,
+    Default = 1,
+    Color = Color3.fromRGB(255,255,255),
+    Increment = 0.01,
+    Callback = function(Value)
+        -- Silent Prediction X
+    end
+})
+
+MiscTab:AddSlider({
+    Name = "Prediction Y",
+    Min = 0,
+    Max = 5,
+    Default = 1,
+    Color = Color3.fromRGB(255,255,255),
+    Increment = 0.01,
+    Callback = function(Value)
+        -- Silent Prediction Y
+    end
+})
+
+MiscTab:AddDropdown({
+    Name = "Prediction Method",
+    Default = "Division",
+    Options = {"Division", "Addition", "Subtraction", "Multiplication"},
+    Callback = function(Value)
+        -- Prediction Method
+    end
+})
+
+MiscTab:AddToggle({
+    Name = "Closest Part To Mouse",
+    Default = false,
+    Callback = function(Value)
+        -- Closest Part
+    end
+})
+
+-- Triggerbot Section
+MiscTab:AddSection({Name = "Triggerbot"})
+
+local TriggerbotEnabled = false
+MiscTab:AddToggle({
+    Name = "Enabled",
+    Default = false,
+    Callback = function(Value)
+        TriggerbotEnabled = Value
+    end
+})
+
+MiscTab:AddSlider({
+    Name = "Delay (ms)",
+    Min = 0,
+    Max = 500,
+    Default = 0,
+    Color = Color3.fromRGB(255,255,255),
+    Increment = 1,
+    Callback = function(Value)
+        -- Delay
+    end
+})
+
+MiscTab:AddSlider({
+    Name = "Release Delay (s)",
+    Min = 0,
+    Max = 1,
+    Default = 0,
+    Color = Color3.fromRGB(255,255,255),
+    Increment = 0.01,
+    Callback = function(Value)
+        -- Release Delay
+    end
+})
+
+MiscTab:AddSlider({
+    Name = "Scale",
+    Min = 0,
+    Max = 1,
+    Default = 0.1,
+    Color = Color3.fromRGB(255,255,255),
+    Increment = 0.01,
+    Callback = function(Value)
+        -- Scale
+    end
+})
+
+-- Init
+OrionLib:Init()
