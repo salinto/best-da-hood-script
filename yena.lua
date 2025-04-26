@@ -9,13 +9,33 @@ if not success then
     return
 end
 
---// Key System Setup
-local key = "JuggIsPro"  -- The key that will unlock the GUI
+--// Key system setup
+local correctKey = "JuggIsPro"  -- Set your key here
+local keyEntered = false  -- Flag to track if the key was entered
 
-local function onKeyEntered(input)
-    -- Check if the entered key matches the required one
-    if input == key then
-        -- If the key is correct, create the GUI window
+--// Create the Key Input GUI (Before Rayfield GUI is visible)
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = game.Players.LocalPlayer.PlayerGui
+
+local textBox = Instance.new("TextBox")
+textBox.Size = UDim2.new(0, 300, 0, 50)
+textBox.Position = UDim2.new(0.5, -150, 0.5, -100)
+textBox.Text = "Enter Key..."
+textBox.Parent = screenGui
+
+local submitButton = Instance.new("TextButton")
+submitButton.Size = UDim2.new(0, 300, 0, 50)
+submitButton.Position = UDim2.new(0.5, -150, 0.5, 50)
+submitButton.Text = "Submit"
+submitButton.Parent = screenGui
+
+--// Key input callback function
+submitButton.MouseButton1Click:Connect(function()
+    local input = textBox.Text
+    if input == correctKey then
+        keyEntered = true
+        screenGui:Destroy()  -- Remove the key input screen
+        -- Create the Rayfield GUI after correct key
         local Window = Rayfield:CreateWindow({
             Name = "Jugg Premium GUI",
             LoadingTitle = "Loading...",
@@ -26,41 +46,23 @@ local function onKeyEntered(input)
                 FileName = "Settings"
             },
             Discord = {
-                Enabled = false
+                Enabled = false,
+                Invite = "",
             },
-            KeySystem = false  -- Disable key system once it's passed
+            KeySystem = false  -- Disable key system after key is entered
         })
 
-        -- Add a test button to ensure GUI is created
+        -- Create a basic button as an example of working GUI
         Window:CreateButton({
             Name = "Test Button",
             Callback = function()
-                print("Test button clicked!")
+                print("Test Button Clicked!")
             end
         })
+
+        -- Optional: Add more UI components here as needed
         print("GUI Loaded Successfully!")
     else
-        print("Incorrect Key! Try Again.")
+        textBox.Text = "Incorrect Key! Try Again."
     end
-end
-
---// Create a simple key input box (GUI will be shown here if key is correct)
-local screenGui = Instance.new("ScreenGui")
-screenGui.Parent = game.Players.LocalPlayer.PlayerGui
-
-local textBox = Instance.new("TextBox")
-textBox.Size = UDim2.new(0, 200, 0, 50)
-textBox.Position = UDim2.new(0.5, -100, 0.5, -25)
-textBox.Text = "Enter Key..."
-textBox.Parent = screenGui
-
-local submitButton = Instance.new("TextButton")
-submitButton.Size = UDim2.new(0, 200, 0, 50)
-submitButton.Position = UDim2.new(0.5, -100, 0.5, 25)
-submitButton.Text = "Submit"
-submitButton.Parent = screenGui
-
-submitButton.MouseButton1Click:Connect(function()
-    local input = textBox.Text
-    onKeyEntered(input)
 end)
