@@ -1,29 +1,29 @@
- --// Load Rayfield Library
+--// Load Rayfield Library
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "plaq | Premium v1.2",
-   LoadingTitle = "plaq | Loading...",
-   LoadingSubtitle = "by plaq dev",
+   Name = "juggy | Premium v1.2",
+   LoadingTitle = "juggy | Loading...",
+   LoadingSubtitle = "by juggy dev",
    ConfigurationSaving = {
       Enabled = true,
-      FolderName = "PlaqPremium",
+      FolderName = "juggyPremium",
       FileName = "Settings"
    },
    Discord = {
       Enabled = false,
-      Invite = "", -- Add Discord invite code here if you want
+      Invite = "",
       RememberJoins = true
    },
    KeySystem = true,
    KeySettings = {
-      Title = "plaq | Key System",
-      Subtitle = "Key = plaqisgod",
+      Title = "juggy | Key System",
+      Subtitle = "Key = jugjug",
       Note = "Join Discord for key.",
-      FileName = "plaqKeySave",
+      FileName = "jugggy",
       SaveKey = true,
       GrabKeyFromSite = false,
-      Key = {"plaqisgod"}
+      Key = {"jugjug"}
    }
 })
 
@@ -45,6 +45,8 @@ local FOVEnabled = false
 local FOVSize = 100
 local ESPEnabled = false
 local SilentAimEnabled = false
+local RapidFireEnabled = false
+local RapidFireKey = Enum.KeyCode.Space  -- Default key for rapid fire
 local Prediction = 0.165
 
 --// FOV Circle
@@ -55,43 +57,43 @@ FOVCircle.Filled = false
 FOVCircle.Transparency = 0.5
 FOVCircle.Visible = false
 
---// ESP Skeletons
-local Skeletons = {}
+--// ESP Skeletons (Renamed to just ESP)
+local ESP = {}
 
-local function createSkeleton(player)
-    local skeleton = {}
+local function createESP(player)
+    local espLines = {}
     for _, partName in ipairs({"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}) do
         local line = Drawing.new("Line")
         line.Color = Color3.fromRGB(255, 255, 255)
         line.Thickness = 1
         line.Transparency = 1
-        skeleton[partName] = line
+        espLines[partName] = line
     end
-    Skeletons[player] = skeleton
+    ESP[player] = espLines
 end
 
-local function removeSkeleton(player)
-    if Skeletons[player] then
-        for _, line in pairs(Skeletons[player]) do
+local function removeESP(player)
+    if ESP[player] then
+        for _, line in pairs(ESP[player]) do
             line:Remove()
         end
-        Skeletons[player] = nil
+        ESP[player] = nil
     end
 end
 
 Players.PlayerAdded:Connect(function(player)
     player.CharacterAdded:Connect(function()
-        createSkeleton(player)
+        createESP(player)
     end)
 end)
 
 Players.PlayerRemoving:Connect(function(player)
-    removeSkeleton(player)
+    removeESP(player)
 end)
 
 for _, player in ipairs(Players:GetPlayers()) do
     if player ~= LocalPlayer then
-        createSkeleton(player)
+        createESP(player)
     end
 end
 
@@ -171,6 +173,22 @@ CombatTab:CreateSlider({
 })
 
 CombatTab:CreateToggle({
+    Name = "Enable Rapid Fire",
+    CurrentValue = false,
+    Callback = function(Value)
+        RapidFireEnabled = Value
+    end,
+})
+
+CombatTab:CreateKeybind({
+    Name = "Choose Rapid Fire Key",
+    DefaultKey = RapidFireKey,
+    Callback = function(Key)
+        RapidFireKey = Key
+    end
+})
+
+CombatTab:CreateToggle({
     Name = "Enable Vanish",
     CurrentValue = false,
     Callback = function(Value)
@@ -247,7 +265,7 @@ RunService.RenderStepped:Connect(function()
     end
 
     -- ESP Skeletons
-    for player, skeleton in pairs(Skeletons) do
+    for player, espLines in pairs(ESP) do
         local character = player.Character
         if character and ESPEnabled then
             local rootPos, onScreen = Camera:WorldToViewportPoint(character.HumanoidRootPart.Position)
@@ -261,38 +279,23 @@ RunService.RenderStepped:Connect(function()
                     ["Right Leg"] = character:FindFirstChild("RightUpperLeg") or character:FindFirstChild("Right Leg"),
                 }
 
-                if parts.Head and parts.Torso then
-                    skeleton.Head.From = Camera:WorldToViewportPoint(parts.Head.Position)
-                    skeleton.Head.To = Camera:WorldToViewportPoint(parts.Torso.Position)
-                    skeleton.Head.Visible = true
-                end
-                if parts.LeftArm and parts.Torso then
-                    skeleton["Left Arm"].From = Camera:WorldToViewportPoint(parts.LeftArm.Position)
-                    skeleton["Left Arm"].To = Camera:WorldToViewportPoint(parts.Torso.Position)
-                    skeleton["Left Arm"].Visible = true
-                end
-                if parts.RightArm and parts.Torso then
-                    skeleton["Right Arm"].From = Camera:WorldToViewportPoint(parts.RightArm.Position)
-                    skeleton["Right Arm"].To = Camera:WorldToViewportPoint(parts.Torso.Position)
-                    skeleton["Right Arm"].Visible = true
-                end
-                if parts.LeftLeg and parts.Torso then
-                    skeleton["Left Leg"].From = Camera:WorldToViewportPoint(parts.LeftLeg.Position)
-                    skeleton["Left Leg"].To = Camera:WorldToViewportPoint(parts.Torso.Position)
-                    skeleton["Left Leg"].Visible = true
-                end
-                if parts.RightLeg and parts.Torso then
-                    skeleton["Right Leg"].From = Camera:WorldToViewportPoint(parts.RightLeg.Position)
-                    skeleton["Right Leg"].To = Camera:WorldToViewportPoint(parts.Torso.Position)
-                    skeleton["Right Leg"].Visible = true
+                -- Update ESP skeleton
+                for partName, part in pairs(parts) do
+                    if part then
+                        espLines[partName].From = Camera:WorldToViewportPoint(part.Position)
+                        espLines[partName].To = Camera:WorldToViewportPoint(parts.Torso.Position)
+                        espLines[partName].Visible = true
+                    end
                 end
             else
-                for _, line in pairs(skeleton) do
+                -- Hide ESP skeleton
+                for _, line in pairs(espLines) do
                     line.Visible = false
                 end
             end
         else
-            for _, line in pairs(skeleton) do
+            -- Hide ESP skeleton
+            for _, line in pairs(espLines) do
                 line.Visible = false
             end
         end
