@@ -16,8 +16,9 @@ local Settings = SaveManager.New("AimbotVisualSettings")
 local AimbotTab = Window:NewTab("Aimbot")
 local VisualTab = Window:NewTab("Visual Settings")
 
--- Create sections inside the Aimbot tab
+-- Aimbot Tab
 local AimbotSection = AimbotTab:NewSection("Aimbot Controls")
+
 AimbotSection:NewToggle("Enable Aimbot", "Toggle aimbot on/off", function(state)
     if state then
         print("Aimbot enabled!")
@@ -35,7 +36,7 @@ AimbotSection:NewSlider("Aimbot FOV", "Adjust the FOV for the aimbot", 180, 0, f
     Settings.AimbotFOV = value
 end)
 
--- Create sections inside the Visual Settings tab
+-- Visual Settings Tab
 local VisualSection = VisualTab:NewSection("Visual Controls")
 
 VisualSection:NewToggle("Enable ESP", "Toggle ESP (wallhack) on/off", function(state)
@@ -100,4 +101,3 @@ function ActivateESP()
     print("ESP activated!")
     -- Add your ESP code here to render boxes or outlines on players
 end
-
