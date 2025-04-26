@@ -29,12 +29,12 @@ Window:AddButton('Toggle Cursor', function()
 end)
 
 -- Create Tabs
-local MainTab = Window:AddTab('Main')
-local WeaponsTab = Window:AddTab('Weapons')
-local ModificationsTab = Window:AddTab('Mods')
+local MainTab = Window:AddTab('Aimbot')
+local MiscTab = Window:AddTab('Misc')
+local VisualsTab = Window:AddTab('Visuals')
 local SettingsTab = Window:AddTab('Settings')
 
--- Aimbot Settings
+-- Aimbot Settings Tab
 local AimbotGroup = MainTab:AddLeftGroupbox('Aimbot')
 
 AimbotGroup:AddToggle('Enable', { Text = 'Enable', Default = false })
@@ -74,6 +74,65 @@ AimbotGroup:AddDropdown('HitPart', {
     Default = 1,
     Multi = false,
     Text = 'Hit Part',
+})
+
+-- Misc Settings Tab
+local MiscGroup = MiscTab:AddLeftGroupbox('Miscellaneous')
+
+MiscGroup:AddToggle('AutoJump', { Text = 'Auto Jump', Default = false })
+MiscGroup:AddToggle('InfiniteJump', { Text = 'Infinite Jump', Default = false })
+MiscGroup:AddToggle('AntiAfk', { Text = 'Anti AFK', Default = true })
+
+MiscGroup:AddDivider()
+
+MiscGroup:AddButton('Clear Effects', function()
+    -- Custom effect clearing function
+    print('Clearing visual effects...')
+end)
+
+-- Visuals Settings Tab
+local VisualsGroup = VisualsTab:AddLeftGroupbox('Visuals')
+
+VisualsGroup:AddToggle('ESP', { Text = 'ESP', Default = false })
+VisualsGroup:AddToggle('PlayerNames', { Text = 'Show Player Names', Default = true })
+
+VisualsGroup:AddDivider()
+
+VisualsGroup:AddColorPicker('ESPColor', {
+    Text = 'ESP Color',
+    Default = Color3.fromRGB(255, 0, 0),
+})
+
+VisualsGroup:AddSlider('ESPSize', {
+    Text = 'ESP Size',
+    Default = 5,
+    Min = 1,
+    Max = 10,
+    Rounding = 1,
+})
+
+-- Settings Tab
+local SettingsGroup = SettingsTab:AddLeftGroupbox('Settings')
+
+SettingsGroup:AddButton('Save Config', function()
+    -- Custom save function
+    print('Config saved!')
+end)
+
+SettingsGroup:AddButton('Load Config', function()
+    -- Custom load function
+    print('Config loaded!')
+end)
+
+SettingsGroup:AddDivider()
+
+SettingsGroup:AddToggle('Enable Sound', { Text = 'Enable Sound', Default = true })
+SettingsGroup:AddSlider('SoundVolume', {
+    Text = 'Sound Volume',
+    Default = 50,
+    Min = 0,
+    Max = 100,
+    Rounding = 1,
 })
 
 -- Minimize Button for Window Resize
