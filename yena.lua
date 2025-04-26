@@ -16,7 +16,7 @@ local Settings = SaveManager.New("AimbotVisualSettings")
 local AimbotTab = Window:NewTab("Aimbot")
 local VisualTab = Window:NewTab("Visual Settings")
 
--- Aimbot Tab
+-- Aimbot Tab - Creating a section in the Aimbot tab
 local AimbotSection = AimbotTab:NewSection("Aimbot Controls")
 
 AimbotSection:NewToggle("Enable Aimbot", "Toggle aimbot on/off", function(state)
@@ -36,7 +36,7 @@ AimbotSection:NewSlider("Aimbot FOV", "Adjust the FOV for the aimbot", 180, 0, f
     Settings.AimbotFOV = value
 end)
 
--- Visual Settings Tab
+-- Visual Settings Tab - Creating a section in the Visual tab
 local VisualSection = VisualTab:NewSection("Visual Controls")
 
 VisualSection:NewToggle("Enable ESP", "Toggle ESP (wallhack) on/off", function(state)
