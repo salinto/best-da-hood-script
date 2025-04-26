@@ -1,185 +1,198 @@
--- Load OrionLib
-local OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Orion/main/source'))()
+--// Fancy UI Menu by ChatGPT
+local Player = game.Players.LocalPlayer
+local Mouse = Player:GetMouse()
 
--- Window setup
-local Window = OrionLib:MakeWindow({
-    Name = "Isabelle2025",
-    HidePremium = false,
-    SaveConfig = true,
-    ConfigFolder = "Isabelle2025Config"
-})
+-- ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "FancyMenu"
+ScreenGui.Parent = game.CoreGui
+
+-- Main Frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 500, 0, 400)
+MainFrame.Position = UDim2.new(0.5, -250, 0.5, -200)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BorderSizePixel = 0
+MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+MainFrame.Parent = ScreenGui
+
+-- UICorner for rounded edges
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = MainFrame
+
+-- Dragging
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+MainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+MainFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
 
 -- Tabs
-local Main = Window:MakeTab({Name = "Main", Icon = "rbxassetid://4483345998", PremiumOnly = false})
-local Visuals = Window:MakeTab({Name = "Visuals", Icon = "rbxassetid://4483345998", PremiumOnly = false})
-local Misc = Window:MakeTab({Name = "Misc", Icon = "rbxassetid://4483345998", PremiumOnly = false})
-local Settings = Window:MakeTab({Name = "Settings", Icon = "rbxassetid://4483345998", PremiumOnly = false})
+local Tabs = Instance.new("Frame")
+Tabs.Size = UDim2.new(0, 120, 1, 0)
+Tabs.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Tabs.BorderSizePixel = 0
+Tabs.Parent = MainFrame
 
--- === AIMBOT SECTION ===
-Main:AddSection({Name = "Aimbot Misc"})
+local UICorner2 = Instance.new("UICorner")
+UICorner2.CornerRadius = UDim.new(0, 10)
+UICorner2.Parent = Tabs
 
-Main:AddToggle({
-    Name = "Enabled",
-    Default = false,
-    Callback = function(v) print("Aimbot:", v) end
-})
+-- Pages
+local Pages = Instance.new("Frame")
+Pages.Size = UDim2.new(1, -120, 1, 0)
+Pages.Position = UDim2.new(0, 120, 0, 0)
+Pages.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+Pages.BorderSizePixel = 0
+Pages.Parent = MainFrame
 
-Main:AddSlider({
-    Name = "Aimbot FOV",
-    Min = 0,
-    Max = 300,
-    Default = 100,
-    Increment = 1,
-    Callback = function(v) print("FOV:", v) end
-})
+local UICorner3 = Instance.new("UICorner")
+UICorner3.CornerRadius = UDim.new(0, 10)
+UICorner3.Parent = Pages
 
-Main:AddSlider({
-    Name = "Smoothing Factor",
-    Min = 0,
-    Max = 5,
-    Default = 1,
-    Increment = 0.01,
-    Callback = function(v) print("Smoothing:", v) end
-})
+-- UIListLayout for Tabs
+local TabLayout = Instance.new("UIListLayout")
+TabLayout.Parent = Tabs
+TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+TabLayout.Padding = UDim.new(0, 10)
 
-Main:AddSlider({
-    Name = "Prediction X",
-    Min = 0,
-    Max = 5,
-    Default = 1,
-    Increment = 0.01,
-    Callback = function(v) print("Prediction X:", v) end
-})
+-- Functions
+local function CreateTab(name)
+    local TabButton = Instance.new("TextButton")
+    TabButton.Size = UDim2.new(1, 0, 0, 50)
+    TabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TabButton.Font = Enum.Font.GothamBold
+    TabButton.TextSize = 14
+    TabButton.Text = name
+    TabButton.Parent = Tabs
 
-Main:AddSlider({
-    Name = "Prediction Y",
-    Min = 0,
-    Max = 5,
-    Default = 1,
-    Increment = 0.01,
-    Callback = function(v) print("Prediction Y:", v) end
-})
+    local Page = Instance.new("ScrollingFrame")
+    Page.Size = UDim2.new(1, 0, 1, 0)
+    Page.BackgroundTransparency = 1
+    Page.Visible = false
+    Page.ScrollBarThickness = 5
+    Page.Parent = Pages
 
-Main:AddDropdown({
-    Name = "Prediction Method",
-    Default = "Division",
-    Options = {"Division", "Addition", "Subtraction", "Multiplication"},
-    Callback = function(v) print("Method:", v) end
-})
+    local PageLayout = Instance.new("UIListLayout")
+    PageLayout.Parent = Page
+    PageLayout.Padding = UDim.new(0, 10)
+    PageLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
-Main:AddDropdown({
-    Name = "Hitbox Priority",
-    Default = "Head",
-    Options = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"},
-    Callback = function(v) print("Hitbox:", v) end
-})
+    TabButton.MouseButton1Click:Connect(function()
+        for _, page in pairs(Pages:GetChildren()) do
+            if page:IsA("ScrollingFrame") then
+                page.Visible = false
+            end
+        end
+        Page.Visible = true
+    end)
 
-Main:AddDropdown({
-    Name = "Method",
-    Default = "Mouse",
-    Options = {"Mouse", "Camera"},
-    Callback = function(v) print("Method:", v) end
-})
+    return Page
+end
 
-Main:AddSection({Name = "Flags"})
+local function CreateToggle(parent, text)
+    local Toggle = Instance.new("TextButton")
+    Toggle.Size = UDim2.new(1, -20, 0, 40)
+    Toggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    Toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Toggle.Font = Enum.Font.Gotham
+    Toggle.TextSize = 14
+    Toggle.Text = "[OFF] " .. text
+    Toggle.Parent = parent
 
-Main:AddToggle({Name = "Teamcheck", Default = false, Callback = function(v) print("Teamcheck:", v) end})
-Main:AddToggle({Name = "Healthcheck", Default = false, Callback = function(v) print("Healthcheck:", v) end})
-Main:AddToggle({Name = "Invisible check", Default = false, Callback = function(v) print("Invis Check:", v) end})
+    local toggled = false
+    Toggle.MouseButton1Click:Connect(function()
+        toggled = not toggled
+        if toggled then
+            Toggle.Text = "[ON] " .. text
+            Toggle.BackgroundColor3 = Color3.fromRGB(70, 130, 180)
+        else
+            Toggle.Text = "[OFF] " .. text
+            Toggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        end
+    end)
+end
 
--- === SILENT AIM SECTION ===
-Misc:AddSection({Name = "Silent Aim Misc"})
+local function CreateSlider(parent, text, min, max)
+    local SliderLabel = Instance.new("TextLabel")
+    SliderLabel.Size = UDim2.new(1, -20, 0, 40)
+    SliderLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    SliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    SliderLabel.Font = Enum.Font.Gotham
+    SliderLabel.TextSize = 14
+    SliderLabel.Text = text .. ": " .. tostring(max)
+    SliderLabel.Parent = parent
+end
 
-Misc:AddToggle({
-    Name = "Enabled",
-    Default = false,
-    Callback = function(v) print("Silent Aim:", v) end
-})
+local function CreateDropdown(parent, text, options)
+    local DropButton = Instance.new("TextButton")
+    DropButton.Size = UDim2.new(1, -20, 0, 40)
+    DropButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    DropButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    DropButton.Font = Enum.Font.Gotham
+    DropButton.TextSize = 14
+    DropButton.Text = text .. ": " .. options[1]
+    DropButton.Parent = parent
 
-Misc:AddSlider({
-    Name = "Silent FOV",
-    Min = 0,
-    Max = 300,
-    Default = 50,
-    Increment = 1,
-    Callback = function(v) print("Silent FOV:", v) end
-})
+    local index = 1
+    DropButton.MouseButton1Click:Connect(function()
+        index = index + 1
+        if index > #options then
+            index = 1
+        end
+        DropButton.Text = text .. ": " .. options[index]
+    end)
+end
 
-Misc:AddSlider({
-    Name = "Hitchance (%)",
-    Min = 0,
-    Max = 100,
-    Default = 100,
-    Increment = 1,
-    Callback = function(v) print("Hitchance:", v) end
-})
+--// Create Tabs
+local MainPage = CreateTab("Main")
+local SettingsPage = CreateTab("Settings")
+local FovPage = CreateTab("Fov Circle")
 
-Misc:AddSlider({
-    Name = "Prediction X",
-    Min = 0,
-    Max = 5,
-    Default = 1,
-    Increment = 0.01,
-    Callback = function(v) print("Silent X:", v) end
-})
+-- Show Main tab by default
+Pages:FindFirstChildOfClass("ScrollingFrame").Visible = true
 
-Misc:AddSlider({
-    Name = "Prediction Y",
-    Min = 0,
-    Max = 5,
-    Default = 1,
-    Increment = 0.01,
-    Callback = function(v) print("Silent Y:", v) end
-})
+--// Add items to Main
+CreateToggle(MainPage, "Silent Aim")
+CreateToggle(MainPage, "Trigger Bot")
 
-Misc:AddDropdown({
-    Name = "Prediction Method",
-    Default = "Division",
-    Options = {"Division", "Addition", "Subtraction", "Multiplication"},
-    Callback = function(v) print("Silent Method:", v) end
-})
+--// Add items to Settings
+CreateToggle(SettingsPage, "Team Check")
+CreateSlider(SettingsPage, "Hit Chance", 0, 100)
+CreateDropdown(SettingsPage, "Hit Part", {"Head", "UpperTorso", "LowerTorso", "HumanoidRootPart"})
 
-Misc:AddToggle({
-    Name = "Closest Part To Mouse",
-    Default = false,
-    Callback = function(v) print("Closest Part:", v) end
-})
-
--- === TRIGGERBOT SECTION ===
-Misc:AddSection({Name = "Triggerbot"})
-
-Misc:AddToggle({
-    Name = "Enabled",
-    Default = false,
-    Callback = function(v) print("Triggerbot:", v) end
-})
-
-Misc:AddSlider({
-    Name = "Delay (ms)",
-    Min = 0,
-    Max = 500,
-    Default = 0,
-    Increment = 1,
-    Callback = function(v) print("Delay:", v) end
-})
-
-Misc:AddSlider({
-    Name = "Release Delay (s)",
-    Min = 0,
-    Max = 1,
-    Default = 0,
-    Increment = 0.01,
-    Callback = function(v) print("Release Delay:", v) end
-})
-
-Misc:AddSlider({
-    Name = "Scale",
-    Min = 0,
-    Max = 1,
-    Default = 0.1,
-    Increment = 0.01,
-    Callback = function(v) print("Scale:", v) end
-})
-
--- === INIT ===
-OrionLib:Init()
+--// Add items to Fov Circle
+CreateToggle(FovPage, "Show Fov Circle")
+CreateSlider(FovPage, "Fov Circle Size", 0, 1000)
