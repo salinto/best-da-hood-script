@@ -220,17 +220,17 @@ RunService.RenderStepped:Connect(function()
         FOVCircle.Radius = FOVSize
     end
 
-    -- Implement Spinbot (Spinning around the target in the air)
+    -- Implement Spinbot (Teleporting to and spinning around the target)
     if SpinbotEnabled then
         local character = LocalPlayer.Character
         local closest = getClosestPlayer()
         if character and closest then
+            -- Teleport to closest player's position
+            character.HumanoidRootPart.CFrame = closest.Character.HumanoidRootPart.CFrame
+            -- Spin around the closest player
             local targetPosition = closest.Character.HumanoidRootPart.Position
-            local characterPosition = character.HumanoidRootPart.Position
-            local direction = (targetPosition - characterPosition).unit
-
-            -- Make the character spin around the target
-            character.HumanoidRootPart.CFrame = CFrame.new(characterPosition) * CFrame.Angles(0, math.rad(SpinbotSpeed), 0)
+            local direction = (targetPosition - character.HumanoidRootPart.Position).unit
+            character.HumanoidRootPart.CFrame = CFrame.new(targetPosition) * CFrame.Angles(0, math.rad(SpinbotSpeed), 0)
         end
     end
 
@@ -241,4 +241,28 @@ RunService.RenderStepped:Connect(function()
     if GodFistEnabled then
         -- Implement God Fist logic here
     end
-end)
+
+    -- Skeleton ESP
+    if ESPEnabled then
+        for player, skeleton in pairs(ESP) do
+            local character = player.Character
+            if character then
+                local rootPos, onScreen = Camera:WorldToViewportPoint(character.HumanoidRootPart.Position)
+                if onScreen then
+                    -- Draw skeleton lines between the parts
+                    for partName, line in pairs(skeleton) do
+                        local part = character:FindFirstChild(partName)
+                        if part then
+                            local partPos, onScreen = Camera:WorldToViewportPoint(part.Position)
+                            if onScreen then
+                                line.From = rootPos
+                                line.To = Vector2.new(partPos.X, partPos.Y)
+                                line.Visible = true
+                            else
+                                line.Visible = false
+                            end
+                        end
+                    end
+                else
+                    for _, line in pairs(skeleton) do
+                        line.Visible
