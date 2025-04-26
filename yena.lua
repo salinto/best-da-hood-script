@@ -1,19 +1,20 @@
 --// Load Rayfield Library
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- Debug: Check if Rayfield loaded
-if Rayfield then
-    print("Rayfield loaded successfully!")
+-- Debug: Check if Rayfield is loading
+if not Rayfield then
+    print("Rayfield library failed to load.")
+    return
 else
-    print("Rayfield failed to load.")
+    print("Rayfield loaded successfully!")
 end
 
---// Key System (Ensure it's enabled)
-local KeySystemEnabled = true  -- Ensure the key system is enabled
+--// Key System (Make sure it's enabled correctly)
+local KeySystemEnabled = true
 
--- Create Window after key system is handled
 local Window
 if Rayfield then
+    -- Create Window after key system is handled
     Window = Rayfield:CreateWindow({
         Name = "Jugg | Premium GUI",
         LoadingTitle = "Loading...",
@@ -26,48 +27,54 @@ if Rayfield then
         Discord = {
             Enabled = false,
         },
-        KeySystem = KeySystemEnabled,  -- Ensure key system is ON
+        KeySystem = KeySystemEnabled,  -- Ensure the key system is ON
         KeySettings = {
             Title = "Jugg | Key System",
             Subtitle = "Key = JuggIsPro",
-            Note = "Join Discord for key.",
+            Note = "Join Discord for the key.",
             FileName = "JuggKeySave",
             SaveKey = true,
             GrabKeyFromSite = false,
-            Key = {"JuggIsPro"},  -- The key needed
+            Key = {"JuggIsPro"}  -- Key needed to unlock menu
         }
     })
 else
     print("Rayfield failed to load.")
 end
 
---// Debug: Verify Key System Handling
+--// Debug: Check key system validation
 local function checkKeySystem()
     if KeySystemEnabled then
-        print("Key system is enabled. Waiting for key...")
+        print("Key system is enabled. Waiting for key input.")
     else
         print("Key system is disabled. Showing menu directly.")
+        Window:Show()  -- Show the menu directly if no key system is used
     end
 end
 
+-- Call the checkKeySystem function to log the state of the key system
 checkKeySystem()
 
---// Creating Menu Once the Key is Validated
-Window:CreateButton({
-    Name = "Activate Feature",
-    Callback = function()
-        print("Feature activated!")  -- Debugging button click action
-    end
-})
-
---// Setting Visibility of UI after Key Validation
+-- Function to Show Menu after Key validation
 local function showMenu()
     if KeySystemEnabled then
-        print("Menu should be shown now if the key is valid.")
+        -- Display a message for debugging to confirm the key system is awaiting input
+        print("Key system is enabled. Waiting for correct key.")
     else
-        Window:Show()  -- Show menu directly if no key is required
+        -- If Key system is not enabled, show the menu directly
+        print("No key system enabled. Showing menu.")
+        Window:Show()  -- Show menu directly
     end
 end
 
+-- Ensure to call the showMenu function to activate the menu after validation
 showMenu()
+
+--// Example Button to test functionality
+Window:CreateButton({
+    Name = "Test Button",  -- A simple test button to check if the menu works
+    Callback = function()
+        print("Test button clicked!")  -- This should show in the console when clicked
+    end
+})
 
