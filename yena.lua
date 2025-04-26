@@ -1,21 +1,24 @@
 --// Load Rayfield Library
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
---// Creating the main window
+--// Check if Rayfield is loaded
+if not Rayfield then
+    print("Rayfield failed to load!")
+else
+    print("Rayfield loaded successfully!")
+end
+
+--// Create Window
 local Window = Rayfield:CreateWindow({
    Name = "Jugg | Premium GUI",
-   LoadingTitle = "Jugg | Loading...",
+   LoadingTitle = "Loading...",
    LoadingSubtitle = "by Jugg Dev",
    ConfigurationSaving = {
       Enabled = true,
       FolderName = "JuggPremium",
       FileName = "Settings"
    },
-   Discord = {
-      Enabled = false,
-      Invite = "", -- Discord invite link
-      RememberJoins = true
-   },
+   Discord = {Enabled = false},
    KeySystem = true,
    KeySettings = {
       Title = "Jugg | Key System",
@@ -35,14 +38,14 @@ local Camera = workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
---// Variables for Aimbot, Silent Aim, FOV, and Rapid Fire
+--// Variables
 local AimbotEnabled = false
 local SilentAimEnabled = false
 local FOVEnabled = false
 local FOVSize = 100
 local RapidFireEnabled = false
 
---// FOV Circle for Aimbot
+--// Create FOV Circle
 local FOVCircle = Drawing.new("Circle")
 FOVCircle.Color = Color3.fromRGB(255, 255, 255)
 FOVCircle.Thickness = 2
@@ -50,22 +53,10 @@ FOVCircle.Filled = false
 FOVCircle.Transparency = 0.5
 FOVCircle.Visible = false
 
---// Rapid Fire
-local function rapidFire()
-   if RapidFireEnabled then
-      game:GetService("UserInputService").InputBegan:Connect(function(input)
-         if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            while input.UserInputType == Enum.UserInputType.MouseButton1 do
-               -- Perform rapid fire logic here, like simulating clicking every frame
-               fire()
-               wait(0.1) -- Adjust the fire speed here
-            end
-         end
-      end)
-   end
-end
+--// Check for FOV Circle visibility
+print("FOV Circle Created")
 
---// Aimbot Targeting System (Find closest player to mouse)
+--// Aimbot Targeting Function
 local function getClosestPlayer()
     local closestPlayer = nil
     local closestDistance = math.huge
@@ -84,19 +75,35 @@ local function getClosestPlayer()
     return closestPlayer
 end
 
---// Silent Aim System (Predict and lock on closest player)
+--// Silent Aim System
 local function silentAim()
-   local closestPlayer = getClosestPlayer()
-   if closestPlayer and closestPlayer.Character then
-      -- Implement silent aim, target the closest player with prediction
-      local predPos = closestPlayer.Character.HumanoidRootPart.Position + (closestPlayer.Character.HumanoidRootPart.Velocity * 0.15)
-      -- Add logic to simulate a shot at the predicted position
-   end
+    local closestPlayer = getClosestPlayer()
+    if closestPlayer and closestPlayer.Character then
+        local predPos = closestPlayer.Character.HumanoidRootPart.Position + (closestPlayer.Character.HumanoidRootPart.Velocity * 0.15)
+        print("Silent Aim targeting: " .. closestPlayer.Name)
+        -- Implement silent aim logic to target predicted position
+    end
 end
 
---// GUI Setup (Combat Tab, Toggle Aimbot, Silent Aim, Rapid Fire)
-local CombatTab = Window:CreateTab("Combat", 4483362458)
+--// Rapid Fire Implementation
+local function rapidFire()
+    if RapidFireEnabled then
+        print("Rapid Fire is enabled")
+        -- Simulate rapid fire here
+        game:GetService("UserInputService").InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                while input.UserInputType == Enum.UserInputType.MouseButton1 do
+                    -- Simulate firing
+                    fire()
+                    wait(0.1)  -- Adjust the rapid fire speed here
+                end
+            end
+        end)
+    end
+end
 
+--// GUI Controls for Combat
+local CombatTab = Window:CreateTab("Combat", 4483362458)
 local CombatSection = CombatTab:CreateSection("Main Combat Features")
 
 CombatTab:CreateToggle({
@@ -104,6 +111,7 @@ CombatTab:CreateToggle({
     CurrentValue = false,
     Callback = function(Value)
         AimbotEnabled = Value
+        print("Aimbot enabled:", AimbotEnabled)
     end,
 })
 
@@ -112,6 +120,7 @@ CombatTab:CreateToggle({
     CurrentValue = false,
     Callback = function(Value)
         SilentAimEnabled = Value
+        print("Silent Aim enabled:", SilentAimEnabled)
     end,
 })
 
@@ -120,10 +129,11 @@ CombatTab:CreateToggle({
     CurrentValue = false,
     Callback = function(Value)
         RapidFireEnabled = Value
+        print("Rapid Fire enabled:", RapidFireEnabled)
     end,
 })
 
---// FOV Settings
+--// FOV Settings (Miscs Tab)
 local MiscsTab = Window:CreateTab("Miscs", 4483362458)
 MiscsTab:CreateToggle({
     Name = "Show FOV Circle",
@@ -131,6 +141,7 @@ MiscsTab:CreateToggle({
     Callback = function(Value)
         FOVEnabled = Value
         FOVCircle.Visible = Value
+        print("FOV Circle Visible:", FOVEnabled)
     end,
 })
 
@@ -142,31 +153,35 @@ MiscsTab:CreateSlider({
     CurrentValue = 100,
     Callback = function(Value)
         FOVSize = Value
+        print("FOV Size:", FOVSize)
     end,
 })
 
---// Render Loop (Update FOV Circle)
+--// Render Loop (for FOV circle, aimbot, etc.)
 RunService.RenderStepped:Connect(function()
-   if FOVEnabled then
-      FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y + 36)
-      FOVCircle.Radius = FOVSize
-   end
+    -- Update FOV circle position and size
+    if FOVEnabled then
+        FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y + 36)
+        FOVCircle.Radius = FOVSize
+    end
 
-   -- Perform aimbot and silent aim checks
-   if AimbotEnabled then
-      local closestPlayer = getClosestPlayer()
-      if closestPlayer and closestPlayer.Character then
-         -- Aim at the closest player's HumanoidRootPart
-         local targetPos = closestPlayer.Character.HumanoidRootPart.Position
-         -- Logic to move the aim towards the target position
-      end
-   end
+    -- Aimbot logic
+    if AimbotEnabled then
+        local closestPlayer = getClosestPlayer()
+        if closestPlayer and closestPlayer.Character then
+            print("Aimbot targeting: " .. closestPlayer.Name)
+            -- Aim at closest player's HumanoidRootPart
+            local targetPos = closestPlayer.Character.HumanoidRootPart.Position
+            -- Implement aiming logic here
+        end
+    end
 
-   -- Perform Silent Aim
-   if SilentAimEnabled then
-      silentAim()
-   end
+    -- Silent Aim logic
+    if SilentAimEnabled then
+        silentAim()
+    end
 
-   -- Enable rapid fire
-   rapidFire()
+    -- Handle Rapid Fire
+    rapidFire()
 end)
+
