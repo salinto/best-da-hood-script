@@ -1,213 +1,300 @@
--- Yena Aimbot and Spinbot Script (v2.0 - Premium Version)
--- Features: Rapid Fire, Anti-Resolve Aimbot, Silent Aim, Spinbot, Void Walk, High Jump, Keybinding, Movable GUI
+ --// Load Rayfield Library
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- Settings (Customizable)
-local settings = {
-    rapidFireKey = Enum.KeyCode.R,  -- Key for Rapid Fire
-    aimbotKey = Enum.KeyCode.F,     -- Key for Aimbot
-    spinbotKey = Enum.KeyCode.Q,    -- Key for Spinbot
-    voidWalkEnabled = false,        -- Enable/Disable Void Walk
-    highJumpEnabled = false,        -- Enable/Disable High Jump
-    aimbotEnabled = true,           -- Enable/Disable Aimbot
-    antiResolve = true,             -- Enable Anti-Resolve
-    silentAim = true,               -- Enable Silent Aim
-    spinSpeed = 3,                  -- Speed of the Spinbot
-    aimbotFOV = 100,                -- Field of View for Aimbot
-    enableSpinbot = false,          -- Enable/Disable Spinbot
-    highJumpPower = 100,            -- Power for High Jump
-}
+local Window = Rayfield:CreateWindow({
+   Name = "plaq | Premium v1.2",
+   LoadingTitle = "plaq | Loading...",
+   LoadingSubtitle = "by plaq dev",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "PlaqPremium",
+      FileName = "Settings"
+   },
+   Discord = {
+      Enabled = false,
+      Invite = "", -- Add Discord invite code here if you want
+      RememberJoins = true
+   },
+   KeySystem = true,
+   KeySettings = {
+      Title = "plaq | Key System",
+      Subtitle = "Key = plaqisgod",
+      Note = "Join Discord for key.",
+      FileName = "plaqKeySave",
+      SaveKey = true,
+      GrabKeyFromSite = false,
+      Key = {"plaqisgod"}
+   }
+})
 
--- UI Elements (Create the GUI)
-local screenGui = Instance.new("ScreenGui")
-screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+--// Services
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
 
--- Main Window
-local window = Instance.new("Frame")
-window.Size = UDim2.new(0, 300, 0, 500)
-window.Position = UDim2.new(0.5, -150, 0.5, -250)
-window.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-window.BorderSizePixel = 2
-window.BorderColor3 = Color3.fromRGB(100, 100, 100)
-window.Parent = screenGui
+--// Variables
+local ForcehitEnabled = false
+local SpinbotEnabled = false
+local SpinbotSpeed = 50
+local VanishEnabled = false
+local VanishMethod = "Float"
+local AimbotEnabled = false
+local FOVEnabled = false
+local FOVSize = 100
+local ESPEnabled = false
+local SilentAimEnabled = false
+local Prediction = 0.165
 
--- Window Dragging Logic
-local dragging, dragInput, dragStart, startPos
-window.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = window.Position
+--// FOV Circle
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Color = Color3.fromRGB(255, 255, 255)
+FOVCircle.Thickness = 2
+FOVCircle.Filled = false
+FOVCircle.Transparency = 0.5
+FOVCircle.Visible = false
+
+--// ESP Skeletons
+local Skeletons = {}
+
+local function createSkeleton(player)
+    local skeleton = {}
+    for _, partName in ipairs({"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}) do
+        local line = Drawing.new("Line")
+        line.Color = Color3.fromRGB(255, 255, 255)
+        line.Thickness = 1
+        line.Transparency = 1
+        skeleton[partName] = line
     end
-end)
+    Skeletons[player] = skeleton
+end
 
-window.InputChanged:Connect(function(input)
-    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = input.Position - dragStart
-        window.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-end)
-
-window.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = false
-    end
-end)
-
--- Title
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(0, 300, 0, 40)
-title.Position = UDim2.new(0, 0, 0, 0)
-title.Text = "Yena Aimbot v2.0"
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.TextSize = 18
-title.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-title.Parent = window
-
--- FOV Slider (Aimbot FOV)
-local fovSlider = Instance.new("TextBox")
-fovSlider.Size = UDim2.new(0, 200, 0, 40)
-fovSlider.Position = UDim2.new(0.5, -100, 0, 50)
-fovSlider.Text = "FOV: " .. settings.aimbotFOV
-fovSlider.TextColor3 = Color3.fromRGB(255, 255, 255)
-fovSlider.TextSize = 14
-fovSlider.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-fovSlider.BorderSizePixel = 0
-fovSlider.Parent = window
-
-fovSlider.FocusLost:Connect(function()
-    local newFOV = tonumber(fovSlider.Text)
-    if newFOV then
-        settings.aimbotFOV = math.clamp(newFOV, 1, 200)
-        fovSlider.Text = "FOV: " .. settings.aimbotFOV
-    end
-end)
-
--- FOV Label
-local fovLabel = Instance.new("TextLabel")
-fovLabel.Size = UDim2.new(0, 200, 0, 20)
-fovLabel.Position = UDim2.new(0.5, -100, 0, 30)
-fovLabel.Text = "Aimbot FOV"
-fovLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-fovLabel.TextSize = 14
-fovLabel.BackgroundTransparency = 1
-fovLabel.Parent = window
-
--- Aimbot Checkbox
-local aimbotCheckbox = Instance.new("TextButton")
-aimbotCheckbox.Size = UDim2.new(0, 200, 0, 50)
-aimbotCheckbox.Position = UDim2.new(0.5, -100, 0, 120)
-aimbotCheckbox.Text = "Enable Aimbot"
-aimbotCheckbox.BackgroundColor3 = settings.aimbotEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
-aimbotCheckbox.TextColor3 = Color3.fromRGB(255, 255, 255)
-aimbotCheckbox.TextSize = 14
-aimbotCheckbox.Parent = window
-
-aimbotCheckbox.MouseButton1Click:Connect(function()
-    settings.aimbotEnabled = not settings.aimbotEnabled
-    aimbotCheckbox.Text = settings.aimbotEnabled and "Disable Aimbot" or "Enable Aimbot"
-    aimbotCheckbox.BackgroundColor3 = settings.aimbotEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
-end)
-
--- Spinbot Checkbox
-local spinbotCheckbox = Instance.new("TextButton")
-spinbotCheckbox.Size = UDim2.new(0, 200, 0, 50)
-spinbotCheckbox.Position = UDim2.new(0.5, -100, 0, 180)
-spinbotCheckbox.Text = "Enable Spinbot"
-spinbotCheckbox.BackgroundColor3 = settings.enableSpinbot and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
-spinbotCheckbox.TextColor3 = Color3.fromRGB(255, 255, 255)
-spinbotCheckbox.TextSize = 14
-spinbotCheckbox.Parent = window
-
-spinbotCheckbox.MouseButton1Click:Connect(function()
-    settings.enableSpinbot = not settings.enableSpinbot
-    spinbotCheckbox.Text = settings.enableSpinbot and "Disable Spinbot" or "Enable Spinbot"
-    spinbotCheckbox.BackgroundColor3 = settings.enableSpinbot and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
-end)
-
--- Void Walk Checkbox
-local voidWalkCheckbox = Instance.new("TextButton")
-voidWalkCheckbox.Size = UDim2.new(0, 200, 0, 50)
-voidWalkCheckbox.Position = UDim2.new(0.5, -100, 0, 240)
-voidWalkCheckbox.Text = "Enable Void Walk"
-voidWalkCheckbox.BackgroundColor3 = settings.voidWalkEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
-voidWalkCheckbox.TextColor3 = Color3.fromRGB(255, 255, 255)
-voidWalkCheckbox.TextSize = 14
-voidWalkCheckbox.Parent = window
-
-voidWalkCheckbox.MouseButton1Click:Connect(function()
-    settings.voidWalkEnabled = not settings.voidWalkEnabled
-    voidWalkCheckbox.Text = settings.voidWalkEnabled and "Disable Void Walk" or "Enable Void Walk"
-    voidWalkCheckbox.BackgroundColor3 = settings.voidWalkEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
-end)
-
--- High Jump Checkbox
-local highJumpCheckbox = Instance.new("TextButton")
-highJumpCheckbox.Size = UDim2.new(0, 200, 0, 50)
-highJumpCheckbox.Position = UDim2.new(0.5, -100, 0, 300)
-highJumpCheckbox.Text = "Enable High Jump"
-highJumpCheckbox.BackgroundColor3 = settings.highJumpEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
-highJumpCheckbox.TextColor3 = Color3.fromRGB(255, 255, 255)
-highJumpCheckbox.TextSize = 14
-highJumpCheckbox.Parent = window
-
-highJumpCheckbox.MouseButton1Click:Connect(function()
-    settings.highJumpEnabled = not settings.highJumpEnabled
-    highJumpCheckbox.Text = settings.highJumpEnabled and "Disable High Jump" or "Enable High Jump"
-    highJumpCheckbox.BackgroundColor3 = settings.highJumpEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
-end)
-
--- Functions (Rapid Fire, Aimbot, Spinbot, etc.)
-local function rapidFire()
-    while game:GetService("UserInputService"):IsKeyDown(settings.rapidFireKey) do
-        -- Perform rapid fire
-        wait(0.1)
+local function removeSkeleton(player)
+    if Skeletons[player] then
+        for _, line in pairs(Skeletons[player]) do
+            line:Remove()
+        end
+        Skeletons[player] = nil
     end
 end
 
-local function aimbot()
-    local player = game.Players.LocalPlayer
-    local mouse = player:GetMouse()
-    while settings.aimbotEnabled and game:GetService("UserInputService"):IsKeyDown(settings.aimbotKey) do
-        -- Perform aimbot logic
-        wait(0.02)
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function()
+        createSkeleton(player)
+    end)
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    removeSkeleton(player)
+end)
+
+for _, player in ipairs(Players:GetPlayers()) do
+    if player ~= LocalPlayer then
+        createSkeleton(player)
     end
 end
 
-local function spinbot()
-    while settings.enableSpinbot do
-        -- Spin the player
-        wait(0.01)
+--// Closest Player Function
+local function getClosestPlayer()
+    local closestPlayer = nil
+    local closestDistance = math.huge
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local pos, onScreen = Camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
+            if onScreen then
+                local distance = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(pos.X, pos.Y)).Magnitude
+                if distance < closestDistance and distance <= FOVSize then
+                    closestDistance = distance
+                    closestPlayer = player
+                end
+            end
+        end
     end
+
+    return closestPlayer
 end
 
-local function voidWalk()
-    while settings.voidWalkEnabled do
-        -- Void walk logic
-        wait(0.1)
-    end
-end
+--// Silent Aim Hook
+local __namecall
+__namecall = hookmetamethod(game, "__namecall", function(self, ...)
+    local method = getnamecallmethod()
+    local args = {...}
 
-local function highJump()
-    local player = game.Players.LocalPlayer
-    local humanoid = player.Character and player.Character:FindFirstChild("Humanoid")
-    if humanoid then
-        humanoid.JumpPower = settings.highJumpEnabled and settings.highJumpPower or 50
+    if SilentAimEnabled and tostring(self) == "HitPart" and method == "FireServer" then
+        local closest = getClosestPlayer()
+        if closest and closest.Character and closest.Character:FindFirstChild("HumanoidRootPart") then
+            local predPos = closest.Character.HumanoidRootPart.Position + (closest.Character.HumanoidRootPart.Velocity * Prediction)
+            args[1] = closest.Character.HumanoidRootPart
+            args[2] = predPos
+            return self.FireServer(self, unpack(args))
+        end
     end
-end
 
--- Main loop to handle the features
-while true do
-    if settings.aimbotEnabled then
-        aimbot()
+    return __namecall(self, ...)
+end)
+
+--// UI Tabs and Sections
+local CombatTab = Window:CreateTab("Combat", 4483362458)
+local MiscsTab = Window:CreateTab("Miscs", 4483362458)
+
+local CombatSection = CombatTab:CreateSection("Main Combat Features")
+local MiscsSection = MiscsTab:CreateSection("Visuals and Aim Assists")
+
+--// Combat Section
+CombatTab:CreateToggle({
+    Name = "Forcehit",
+    CurrentValue = false,
+    Callback = function(Value)
+        ForcehitEnabled = Value
+    end,
+})
+
+CombatTab:CreateToggle({
+    Name = "Spinbot",
+    CurrentValue = false,
+    Callback = function(Value)
+        SpinbotEnabled = Value
+    end,
+})
+
+CombatTab:CreateSlider({
+    Name = "Spinbot Speed",
+    Range = {0, 200},
+    Increment = 5,
+    Suffix = "°/s",
+    CurrentValue = 50,
+    Callback = function(Value)
+        SpinbotSpeed = Value
+    end,
+})
+
+CombatTab:CreateToggle({
+    Name = "Enable Vanish",
+    CurrentValue = false,
+    Callback = function(Value)
+        VanishEnabled = Value
+    end,
+})
+
+CombatTab:CreateDropdown({
+    Name = "Vanish Method",
+    Options = {"Float", "Blink", "Fade"},
+    CurrentOption = "Float",
+    Callback = function(Option)
+        VanishMethod = Option
+    end,
+})
+
+--// Miscs Section
+MiscsTab:CreateToggle({
+    Name = "Enable Aimbot",
+    CurrentValue = false,
+    Callback = function(Value)
+        AimbotEnabled = Value
+    end,
+})
+
+MiscsTab:CreateToggle({
+    Name = "Show FOV Circle",
+    CurrentValue = false,
+    Callback = function(Value)
+        FOVEnabled = Value
+        FOVCircle.Visible = Value
+    end,
+})
+
+MiscsTab:CreateSlider({
+    Name = "FOV Size",
+    Range = {50, 500},
+    Increment = 5,
+    Suffix = "px",
+    CurrentValue = 100,
+    Callback = function(Value)
+        FOVSize = Value
+    end,
+})
+
+MiscsTab:CreateToggle({
+    Name = "Enable Skeleton ESP",
+    CurrentValue = false,
+    Callback = function(Value)
+        ESPEnabled = Value
+    end,
+})
+
+MiscsTab:CreateToggle({
+    Name = "Enable Silent Aim",
+    CurrentValue = false,
+    Callback = function(Value)
+        SilentAimEnabled = Value
+    end,
+})
+
+--// Render Loop
+RunService.RenderStepped:Connect(function()
+    if FOVEnabled then
+        FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y + 36)
+        FOVCircle.Radius = FOVSize
     end
-    if settings.enableSpinbot then
-        spinbot()
+
+    if SpinbotEnabled then
+        local character = LocalPlayer.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            character.HumanoidRootPart.CFrame *= CFrame.Angles(0, math.rad(SpinbotSpeed), 0)
+        end
     end
-    if settings.voidWalkEnabled then
-        voidWalk()
+
+    -- ESP Skeletons
+    for player, skeleton in pairs(Skeletons) do
+        local character = player.Character
+        if character and ESPEnabled then
+            local rootPos, onScreen = Camera:WorldToViewportPoint(character.HumanoidRootPart.Position)
+            if onScreen then
+                local parts = {
+                    Head = character:FindFirstChild("Head"),
+                    Torso = character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso"),
+                    ["Left Arm"] = character:FindFirstChild("LeftUpperArm") or character:FindFirstChild("Left Arm"),
+                    ["Right Arm"] = character:FindFirstChild("RightUpperArm") or character:FindFirstChild("Right Arm"),
+                    ["Left Leg"] = character:FindFirstChild("LeftUpperLeg") or character:FindFirstChild("Left Leg"),
+                    ["Right Leg"] = character:FindFirstChild("RightUpperLeg") or character:FindFirstChild("Right Leg"),
+                }
+
+                if parts.Head and parts.Torso then
+                    skeleton.Head.From = Camera:WorldToViewportPoint(parts.Head.Position)
+                    skeleton.Head.To = Camera:WorldToViewportPoint(parts.Torso.Position)
+                    skeleton.Head.Visible = true
+                end
+                if parts.LeftArm and parts.Torso then
+                    skeleton["Left Arm"].From = Camera:WorldToViewportPoint(parts.LeftArm.Position)
+                    skeleton["Left Arm"].To = Camera:WorldToViewportPoint(parts.Torso.Position)
+                    skeleton["Left Arm"].Visible = true
+                end
+                if parts.RightArm and parts.Torso then
+                    skeleton["Right Arm"].From = Camera:WorldToViewportPoint(parts.RightArm.Position)
+                    skeleton["Right Arm"].To = Camera:WorldToViewportPoint(parts.Torso.Position)
+                    skeleton["Right Arm"].Visible = true
+                end
+                if parts.LeftLeg and parts.Torso then
+                    skeleton["Left Leg"].From = Camera:WorldToViewportPoint(parts.LeftLeg.Position)
+                    skeleton["Left Leg"].To = Camera:WorldToViewportPoint(parts.Torso.Position)
+                    skeleton["Left Leg"].Visible = true
+                end
+                if parts.RightLeg and parts.Torso then
+                    skeleton["Right Leg"].From = Camera:WorldToViewportPoint(parts.RightLeg.Position)
+                    skeleton["Right Leg"].To = Camera:WorldToViewportPoint(parts.Torso.Position)
+                    skeleton["Right Leg"].Visible = true
+                end
+            else
+                for _, line in pairs(skeleton) do
+                    line.Visible = false
+                end
+            end
+        else
+            for _, line in pairs(skeleton) do
+                line.Visible = false
+            end
+        end
     end
-    if settings.highJumpEnabled then
-        highJump()
-    end
-    wait(0.1)
-end
+end)
