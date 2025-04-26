@@ -38,9 +38,9 @@ local Mouse = LocalPlayer:GetMouse()
 local ForcehitEnabled = false
 local SpinbotEnabled = false
 local SpinbotSpeed = 50
-local SpinbotKey = Enum.KeyCode.Q  -- Default key for Spinbot
+local SpinbotKey = Enum.KeyCode.Q
 local RapidFireEnabled = false
-local RapidFireKey = Enum.KeyCode.Space  -- Default key for Rapid Fire
+local RapidFireKey = Enum.KeyCode.Space
 local Prediction = 0.165
 local GodModeEnabled = false
 local GodFistEnabled = false
@@ -139,78 +139,13 @@ end)
 local CombatTab = Window:CreateTab("Combat", 4483362458)
 local MiscsTab = Window:CreateTab("Miscs", 4483362458)
 
+-- Ensure that the Misc section is created
+print("MiscsTab Created")
+
 local CombatSection = CombatTab:CreateSection("Main Combat Features")
 local MiscsSection = MiscsTab:CreateSection("Visuals and Aim Assists")
 
---// Combat Section
-CombatTab:CreateToggle({
-    Name = "Forcehit",
-    CurrentValue = false,
-    Callback = function(Value)
-        ForcehitEnabled = Value
-    end,
-})
-
-CombatTab:CreateToggle({
-    Name = "Spinbot",
-    CurrentValue = false,
-    Callback = function(Value)
-        SpinbotEnabled = Value
-    end,
-})
-
-CombatTab:CreateKeybind({
-    Name = "Spinbot Key",
-    DefaultKey = SpinbotKey,
-    Callback = function(Key)
-        SpinbotKey = Key
-    end
-})
-
-CombatTab:CreateSlider({
-    Name = "Spinbot Speed",
-    Range = {0, 200},
-    Increment = 5,
-    Suffix = "°/s",
-    CurrentValue = 50,
-    Callback = function(Value)
-        SpinbotSpeed = Value
-    end,
-})
-
-CombatTab:CreateToggle({
-    Name = "Enable Rapid Fire",
-    CurrentValue = false,
-    Callback = function(Value)
-        RapidFireEnabled = Value
-    end,
-})
-
-CombatTab:CreateKeybind({
-    Name = "Rapid Fire Key",
-    DefaultKey = RapidFireKey,
-    Callback = function(Key)
-        RapidFireKey = Key
-    end
-})
-
-CombatTab:CreateToggle({
-    Name = "God Mode",
-    CurrentValue = false,
-    Callback = function(Value)
-        GodModeEnabled = Value
-    end,
-})
-
-CombatTab:CreateToggle({
-    Name = "God Fist",
-    CurrentValue = false,
-    Callback = function(Value)
-        GodFistEnabled = Value
-    end,
-})
-
---// Miscs Section (Visuals, Silent Aim, etc.)
+-- Ensure the Misc section is visible
 MiscsTab:CreateToggle({
     Name = "Enable Silent Aim",
     CurrentValue = false,
@@ -253,15 +188,8 @@ RunService.RenderStepped:Connect(function()
         FOVCircle.Radius = FOVSize
     end
 
-    if SpinbotEnabled and UserInputService:IsKeyDown(SpinbotKey) then
-        local character = LocalPlayer.Character
-        if character and character:FindFirstChild("HumanoidRootPart") then
-            character.HumanoidRootPart.CFrame *= CFrame.Angles(0, math.rad(SpinbotSpeed), 0)
-        end
-    end
-
-    if RapidFireEnabled and UserInputService:IsKeyDown(RapidFireKey) then
-        -- Your rapid fire logic goes here
+    if SilentAimEnabled then
+        -- Silent aim logic here
     end
 
     -- ESP Skeletons
@@ -301,12 +229,11 @@ RunService.RenderStepped:Connect(function()
         end
     end
 
-    -- God Mode & God Fist Logic (Example implementation)
+    -- God Mode & God Fist Logic
     if GodModeEnabled then
         LocalPlayer.Character:FindFirstChild("Humanoid").Health = math.huge
     end
     if GodFistEnabled then
-        -- Implement God Fist logic (could involve instant KO or increased damage)
+        -- Implement God Fist logic here
     end
 end)
-
