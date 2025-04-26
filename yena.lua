@@ -29,13 +29,16 @@ Window:AddButton('Toggle Cursor', function()
 end)
 
 -- Create Tabs
-local MainTab = Window:AddTab('Aimbot')
-local MiscTab = Window:AddTab('Misc')
-local VisualsTab = Window:AddTab('Visuals')
-local SettingsTab = Window:AddTab('Settings')
+local Tabs = Window:AddTab('Main')
+
+-- Add sub-tabs for Aimbot, Misc, Visuals, and Settings
+local AimbotTab = Tabs:AddTab('Aimbot')
+local MiscTab = Tabs:AddTab('Misc')
+local VisualsTab = Tabs:AddTab('Visuals')
+local SettingsTab = Tabs:AddTab('Settings')
 
 -- Aimbot Settings Tab
-local AimbotGroup = MainTab:AddLeftGroupbox('Aimbot')
+local AimbotGroup = AimbotTab:AddLeftGroupbox('Aimbot')
 
 AimbotGroup:AddToggle('Enable', { Text = 'Enable', Default = false })
 AimbotGroup:AddToggle('ClosestPart', { Text = 'Closest Part', Default = true })
