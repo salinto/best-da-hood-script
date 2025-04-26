@@ -1,17 +1,20 @@
--- Yena Aimbot and Spinbot Script (v1.1)
--- Features: Rapid Fire, Anti-Resolve Aimbot, Silent Aim, Spinbot, Keybinding
+-- Yena Aimbot and Spinbot Script (v1.2)
+-- Features: Rapid Fire, Anti-Resolve Aimbot, Silent Aim, Spinbot, Void Walk, High Jump, Keybinding
 
 -- Settings (Customizable)
 local settings = {
     rapidFireKey = Enum.KeyCode.R,  -- Key for Rapid Fire
     aimbotKey = Enum.KeyCode.F,     -- Key for Aimbot
     spinbotKey = Enum.KeyCode.Q,    -- Key for Spinbot
+    voidWalkEnabled = false,        -- Enable/Disable Void Walk
+    highJumpEnabled = false,        -- Enable/Disable High Jump
     aimbotEnabled = true,           -- Enable/Disable Aimbot
     antiResolve = true,             -- Enable Anti-Resolve
     silentAim = true,               -- Enable Silent Aim
     spinSpeed = 3,                  -- Speed of the Spinbot
     aimbotFOV = 100,                -- Field of View for Aimbot
     enableSpinbot = false,          -- Enable/Disable Spinbot
+    highJumpPower = 100,            -- Power for High Jump
 }
 
 -- UI Elements (Using a simple GUI to manage options)
@@ -62,6 +65,36 @@ spinbotCheckbox.MouseButton1Click:Connect(function()
     settings.enableSpinbot = not settings.enableSpinbot
     spinbotCheckbox.Text = settings.enableSpinbot and "Disable Spinbot" or "Enable Spinbot"
     spinbotCheckbox.BackgroundColor3 = settings.enableSpinbot and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+end)
+
+-- Void Walk Checkbox
+local voidWalkCheckbox = Instance.new("TextButton")
+voidWalkCheckbox.Size = UDim2.new(0, 200, 0, 50)
+voidWalkCheckbox.Position = UDim2.new(0.5, -100, 0.5, 0)
+voidWalkCheckbox.Text = "Enable Void Walk"
+voidWalkCheckbox.BackgroundColor3 = settings.voidWalkEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+voidWalkCheckbox.Parent = screenGui
+
+-- Void Walk Checkbox Toggle Event
+voidWalkCheckbox.MouseButton1Click:Connect(function()
+    settings.voidWalkEnabled = not settings.voidWalkEnabled
+    voidWalkCheckbox.Text = settings.voidWalkEnabled and "Disable Void Walk" or "Enable Void Walk"
+    voidWalkCheckbox.BackgroundColor3 = settings.voidWalkEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+end)
+
+-- High Jump Checkbox
+local highJumpCheckbox = Instance.new("TextButton")
+highJumpCheckbox.Size = UDim2.new(0, 200, 0, 50)
+highJumpCheckbox.Position = UDim2.new(0.5, -100, 0.5, 50)
+highJumpCheckbox.Text = "Enable High Jump"
+highJumpCheckbox.BackgroundColor3 = settings.highJumpEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+highJumpCheckbox.Parent = screenGui
+
+-- High Jump Checkbox Toggle Event
+highJumpCheckbox.MouseButton1Click:Connect(function()
+    settings.highJumpEnabled = not settings.highJumpEnabled
+    highJumpCheckbox.Text = settings.highJumpEnabled and "Disable High Jump" or "Enable High Jump"
+    highJumpCheckbox.BackgroundColor3 = settings.highJumpEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
 end)
 
 -- Rapid Fire Function (Always active when key is pressed)
@@ -145,6 +178,27 @@ local function spinbot()
     end
 end
 
+-- Void Walk Function
+local function voidWalk()
+    local player = game:GetService("Players").LocalPlayer
+    while settings.voidWalkEnabled do
+        -- Disable death from void (falling off map)
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            player.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame + Vector3.new(0, 10, 0)
+        end
+        wait(0.1)
+    end
+end
+
+-- High Jump Function
+local function highJump()
+    local player = game:GetService("Players").LocalPlayer
+    local humanoid = player.Character and player.Character:FindFirstChild("Humanoid")
+    if humanoid then
+        humanoid.JumpPower = settings.highJumpEnabled and settings.highJumpPower or 50
+    end
+end
+
 -- Main Loop (Check for Keypresses and Update States)
 while true do
     -- Rapid Fire
@@ -168,6 +222,14 @@ while true do
     if settings.enableSpinbot then
         spinbot()
     end
+
+    -- Void Walk
+    if settings.voidWalkEnabled then
+        voidWalk()
+    end
+
+    -- High Jump
+    highJump()
 
     wait(0.01)
 end
