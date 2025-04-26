@@ -1,5 +1,5 @@
 --// Load Yena Library
-local Yena = loadstring(game:HttpGet('https://raw.githubusercontent.com/salinto/best-da-hood-script/refs/heads/main/yena'))()
+local Yena = loadstring(game:HttpGet('https://raw.githubusercontent.com/salinto/best-da-hood-script/refs/heads/main/yena.lua'))()
 
 local Window = Yena:CreateWindow({
     Name = "JuggyWare | Premium v1.2",
