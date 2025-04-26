@@ -1,11 +1,18 @@
---// Fancy UI Menu by ChatGPT
+--// Fancy UI Menu by ChatGPT (KRNL + Delta ready)
+
 local Player = game.Players.LocalPlayer
 local Mouse = Player:GetMouse()
 
 -- ScreenGui
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "FancyMenu"
-ScreenGui.Parent = game.CoreGui
+
+pcall(function()
+    ScreenGui.Parent = game.CoreGui
+end)
+if not ScreenGui.Parent then
+    ScreenGui.Parent = Player:WaitForChild("PlayerGui")
+end
 
 -- Main Frame
 local MainFrame = Instance.new("Frame")
@@ -16,7 +23,7 @@ MainFrame.BorderSizePixel = 0
 MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 MainFrame.Parent = ScreenGui
 
--- UICorner for rounded edges
+-- UICorner
 local UICorner = Instance.new("UICorner")
 UICorner.CornerRadius = UDim.new(0, 10)
 UICorner.Parent = MainFrame
