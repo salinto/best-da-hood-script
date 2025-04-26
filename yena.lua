@@ -1,6 +1,7 @@
 -- Load OrionLib
 local OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Orion/main/source'))()
 
+-- Window setup
 local Window = OrionLib:MakeWindow({
     Name = "Isabelle2025",
     HidePremium = false,
@@ -8,271 +9,177 @@ local Window = OrionLib:MakeWindow({
     ConfigFolder = "Isabelle2025Config"
 })
 
--- MAIN TAB
-local MainTab = Window:MakeTab({
-    Name = "Main",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
+-- Tabs
+local Main = Window:MakeTab({Name = "Main", Icon = "rbxassetid://4483345998", PremiumOnly = false})
+local Visuals = Window:MakeTab({Name = "Visuals", Icon = "rbxassetid://4483345998", PremiumOnly = false})
+local Misc = Window:MakeTab({Name = "Misc", Icon = "rbxassetid://4483345998", PremiumOnly = false})
+local Settings = Window:MakeTab({Name = "Settings", Icon = "rbxassetid://4483345998", PremiumOnly = false})
 
--- VISUALS TAB
-local VisualsTab = Window:MakeTab({
-    Name = "Visuals",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
+-- === AIMBOT SECTION ===
+Main:AddSection({Name = "Aimbot Misc"})
 
--- MISC TAB
-local MiscTab = Window:MakeTab({
-    Name = "Misc",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
-
--- SETTINGS TAB
-local SettingsTab = Window:MakeTab({
-    Name = "Settings",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
-
--- Aimbot Misc Section
-MainTab:AddSection({Name = "Aimbot Misc"})
-
-local AimbotEnabled = false
-MainTab:AddToggle({
+Main:AddToggle({
     Name = "Enabled",
     Default = false,
-    Callback = function(Value)
-        AimbotEnabled = Value
-    end
+    Callback = function(v) print("Aimbot:", v) end
 })
 
-MainTab:AddSlider({
+Main:AddSlider({
     Name = "Aimbot FOV",
     Min = 0,
     Max = 300,
     Default = 100,
-    Color = Color3.fromRGB(255,255,255),
     Increment = 1,
-    Callback = function(Value)
-        -- Set FOV
-    end
+    Callback = function(v) print("FOV:", v) end
 })
 
-MainTab:AddSlider({
+Main:AddSlider({
     Name = "Smoothing Factor",
     Min = 0,
     Max = 5,
     Default = 1,
-    Color = Color3.fromRGB(255,255,255),
     Increment = 0.01,
-    Callback = function(Value)
-        -- Set smoothing
-    end
+    Callback = function(v) print("Smoothing:", v) end
 })
 
-MainTab:AddSlider({
+Main:AddSlider({
     Name = "Prediction X",
     Min = 0,
     Max = 5,
     Default = 1,
-    Color = Color3.fromRGB(255,255,255),
     Increment = 0.01,
-    Callback = function(Value)
-        -- Prediction X
-    end
+    Callback = function(v) print("Prediction X:", v) end
 })
 
-MainTab:AddSlider({
+Main:AddSlider({
     Name = "Prediction Y",
     Min = 0,
     Max = 5,
     Default = 1,
-    Color = Color3.fromRGB(255,255,255),
     Increment = 0.01,
-    Callback = function(Value)
-        -- Prediction Y
-    end
+    Callback = function(v) print("Prediction Y:", v) end
 })
 
-MainTab:AddDropdown({
+Main:AddDropdown({
     Name = "Prediction Method",
     Default = "Division",
     Options = {"Division", "Addition", "Subtraction", "Multiplication"},
-    Callback = function(Value)
-        -- Method chosen
-    end
+    Callback = function(v) print("Method:", v) end
 })
 
-MainTab:AddDropdown({
+Main:AddDropdown({
     Name = "Hitbox Priority",
     Default = "Head",
     Options = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"},
-    Callback = function(Value)
-        -- Hitbox part
-    end
+    Callback = function(v) print("Hitbox:", v) end
 })
 
-MainTab:AddDropdown({
+Main:AddDropdown({
     Name = "Method",
     Default = "Mouse",
     Options = {"Mouse", "Camera"},
-    Callback = function(Value)
-        -- Mouse/camera lock
-    end
+    Callback = function(v) print("Method:", v) end
 })
 
-MainTab:AddSection({Name = "Flags"})
+Main:AddSection({Name = "Flags"})
 
-MainTab:AddToggle({
-    Name = "Teamcheck",
-    Default = false,
-    Callback = function(Value)
-        -- Teamcheck on/off
-    end
-})
+Main:AddToggle({Name = "Teamcheck", Default = false, Callback = function(v) print("Teamcheck:", v) end})
+Main:AddToggle({Name = "Healthcheck", Default = false, Callback = function(v) print("Healthcheck:", v) end})
+Main:AddToggle({Name = "Invisible check", Default = false, Callback = function(v) print("Invis Check:", v) end})
 
-MainTab:AddToggle({
-    Name = "Healthcheck",
-    Default = false,
-    Callback = function(Value)
-        -- Healthcheck on/off
-    end
-})
+-- === SILENT AIM SECTION ===
+Misc:AddSection({Name = "Silent Aim Misc"})
 
-MainTab:AddToggle({
-    Name = "Invisible check",
-    Default = false,
-    Callback = function(Value)
-        -- Invisible check
-    end
-})
-
--- Silent Aim Section
-MiscTab:AddSection({Name = "Silent Aim Misc"})
-
-local SilentAimEnabled = false
-MiscTab:AddToggle({
+Misc:AddToggle({
     Name = "Enabled",
     Default = false,
-    Callback = function(Value)
-        SilentAimEnabled = Value
-    end
+    Callback = function(v) print("Silent Aim:", v) end
 })
 
-MiscTab:AddSlider({
+Misc:AddSlider({
     Name = "Silent FOV",
     Min = 0,
     Max = 300,
     Default = 50,
-    Color = Color3.fromRGB(255,255,255),
     Increment = 1,
-    Callback = function(Value)
-        -- Silent FOV set
-    end
+    Callback = function(v) print("Silent FOV:", v) end
 })
 
-MiscTab:AddSlider({
+Misc:AddSlider({
     Name = "Hitchance (%)",
     Min = 0,
     Max = 100,
     Default = 100,
-    Color = Color3.fromRGB(255,255,255),
     Increment = 1,
-    Callback = function(Value)
-        -- Hitchance
-    end
+    Callback = function(v) print("Hitchance:", v) end
 })
 
-MiscTab:AddSlider({
+Misc:AddSlider({
     Name = "Prediction X",
     Min = 0,
     Max = 5,
     Default = 1,
-    Color = Color3.fromRGB(255,255,255),
     Increment = 0.01,
-    Callback = function(Value)
-        -- Silent Prediction X
-    end
+    Callback = function(v) print("Silent X:", v) end
 })
 
-MiscTab:AddSlider({
+Misc:AddSlider({
     Name = "Prediction Y",
     Min = 0,
     Max = 5,
     Default = 1,
-    Color = Color3.fromRGB(255,255,255),
     Increment = 0.01,
-    Callback = function(Value)
-        -- Silent Prediction Y
-    end
+    Callback = function(v) print("Silent Y:", v) end
 })
 
-MiscTab:AddDropdown({
+Misc:AddDropdown({
     Name = "Prediction Method",
     Default = "Division",
     Options = {"Division", "Addition", "Subtraction", "Multiplication"},
-    Callback = function(Value)
-        -- Prediction Method
-    end
+    Callback = function(v) print("Silent Method:", v) end
 })
 
-MiscTab:AddToggle({
+Misc:AddToggle({
     Name = "Closest Part To Mouse",
     Default = false,
-    Callback = function(Value)
-        -- Closest Part
-    end
+    Callback = function(v) print("Closest Part:", v) end
 })
 
--- Triggerbot Section
-MiscTab:AddSection({Name = "Triggerbot"})
+-- === TRIGGERBOT SECTION ===
+Misc:AddSection({Name = "Triggerbot"})
 
-local TriggerbotEnabled = false
-MiscTab:AddToggle({
+Misc:AddToggle({
     Name = "Enabled",
     Default = false,
-    Callback = function(Value)
-        TriggerbotEnabled = Value
-    end
+    Callback = function(v) print("Triggerbot:", v) end
 })
 
-MiscTab:AddSlider({
+Misc:AddSlider({
     Name = "Delay (ms)",
     Min = 0,
     Max = 500,
     Default = 0,
-    Color = Color3.fromRGB(255,255,255),
     Increment = 1,
-    Callback = function(Value)
-        -- Delay
-    end
+    Callback = function(v) print("Delay:", v) end
 })
 
-MiscTab:AddSlider({
+Misc:AddSlider({
     Name = "Release Delay (s)",
     Min = 0,
     Max = 1,
     Default = 0,
-    Color = Color3.fromRGB(255,255,255),
     Increment = 0.01,
-    Callback = function(Value)
-        -- Release Delay
-    end
+    Callback = function(v) print("Release Delay:", v) end
 })
 
-MiscTab:AddSlider({
+Misc:AddSlider({
     Name = "Scale",
     Min = 0,
     Max = 1,
     Default = 0.1,
-    Color = Color3.fromRGB(255,255,255),
     Increment = 0.01,
-    Callback = function(Value)
-        -- Scale
-    end
+    Callback = function(v) print("Scale:", v) end
 })
 
--- Init
+-- === INIT ===
 OrionLib:Init()
