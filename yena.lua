@@ -1,7 +1,7 @@
 local TweenService = game:GetService('TweenService')
 local UserInputService = game:GetService('UserInputService')
 
--- Ensure that the Library is available
+-- Ensure the library is loaded
 local Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Library.lua'))()
 local ThemeManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/addons/ThemeManager.lua'))()
 local SaveManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/addons/SaveManager.lua'))()
@@ -15,7 +15,7 @@ local function toggleMouseCursor()
     UserInputService.MouseIconEnabled = mouseCursorEnabled
 end
 
--- Basic GUI Setup
+-- Basic GUI Setup for Executing in Acreus X and Code X
 local Window = Library:CreateWindow({
     Title = 'Etiquette Internal',
     Center = true,
@@ -76,7 +76,7 @@ AimbotGroup:AddDropdown('HitPart', {
     Text = 'Hit Part',
 })
 
--- Minimize Button
+-- Minimize Button for Window Resize
 local Minimized = false
 local FullSize = Window._window.Size
 local MinimizedSize = Vector2.new(320, 50)
