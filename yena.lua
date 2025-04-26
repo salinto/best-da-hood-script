@@ -12,7 +12,7 @@ ThemeManager.ApplyTheme("Dark")  -- You can change this to other theme names lik
 -- Create a save manager to persist settings
 local Settings = SaveManager.New("AimbotVisualSettings")
 
--- Create the tabs for the GUI
+-- Creating Tabs
 local AimbotTab = Window:NewTab("Aimbot")
 local VisualTab = Window:NewTab("Visual Settings")
 
