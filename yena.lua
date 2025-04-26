@@ -1,355 +1,173 @@
---// Key System
-local function checkKey(key)
-    local validKeys = {"juggyisgod"}  -- List of valid keys
-    for _, validKey in pairs(validKeys) do
-        if key == validKey then
-            return true
-        end
+-- Yena Aimbot and Spinbot Script (v1.1)
+-- Features: Rapid Fire, Anti-Resolve Aimbot, Silent Aim, Spinbot, Keybinding
+
+-- Settings (Customizable)
+local settings = {
+    rapidFireKey = Enum.KeyCode.R,  -- Key for Rapid Fire
+    aimbotKey = Enum.KeyCode.F,     -- Key for Aimbot
+    spinbotKey = Enum.KeyCode.Q,    -- Key for Spinbot
+    aimbotEnabled = true,           -- Enable/Disable Aimbot
+    antiResolve = true,             -- Enable Anti-Resolve
+    silentAim = true,               -- Enable Silent Aim
+    spinSpeed = 3,                  -- Speed of the Spinbot
+    aimbotFOV = 100,                -- Field of View for Aimbot
+    enableSpinbot = false,          -- Enable/Disable Spinbot
+}
+
+-- UI Elements (Using a simple GUI to manage options)
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Aimbot FOV Slider
+local fovSlider = Instance.new("TextBox")
+fovSlider.Size = UDim2.new(0, 200, 0, 50)
+fovSlider.Position = UDim2.new(0.5, -100, 0.5, -150)
+fovSlider.Text = "FOV: " .. settings.aimbotFOV
+fovSlider.Parent = screenGui
+
+-- FOV Slider Change Event
+fovSlider.FocusLost:Connect(function()
+    local newFOV = tonumber(fovSlider.Text)
+    if newFOV then
+        settings.aimbotFOV = math.clamp(newFOV, 1, 200)  -- Keep FOV between 1 and 200
+        fovSlider.Text = "FOV: " .. settings.aimbotFOV
     end
-    return false
-end
-
--- Prompt the user to enter the key (you can replace this with a UI element to input the key)
-local userKey = game:GetService("Players").LocalPlayer.PlayerGui:WaitForChild("InputBox"):GetText()
-
-if checkKey(userKey) then
-    -- Key is valid, now load the script
-    local scriptURL = 'https://raw.githubusercontent.com/salinto/best-da-hood-script/refs/heads/main/yena.lua'
-    loadstring(game:HttpGet(scriptURL))()
-else
-    -- Invalid key
-    print("Invalid key!")
-end
-
---// Yena Library and UI Setup (after loading the script)
-local Yena = loadstring(game:HttpGet('https://raw.githubusercontent.com/salinto/best-da-hood-script/refs/heads/main/yena.lua'))()
-
-local Window = Yena:CreateWindow({
-    Name = "JuggyWare | Premium v1.2",
-    LoadingTitle = "JuggyWare | Loading...",
-    LoadingSubtitle = "by JuggyWare dev",
-    ConfigurationSaving = {
-        Enabled = true,
-        FolderName = "JuggyWarePremium",
-        FileName = "Settings"
-    },
-    Discord = {
-        Enabled = false,
-        Invite = "", -- Add Discord invite code here if you want
-        RememberJoins = true
-    },
-    KeySystem = true,
-    KeySettings = {
-        Title = "JuggyWare | Key System",
-        Subtitle = "Key = juggyisgod",
-        Note = "Join Discord for key.",
-        FileName = "juggyKeySave",
-        SaveKey = true,
-        GrabKeyFromSite = false,
-        Key = {"juggyisgod"}
-    }
-})
-
---// Services
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
-local Camera = workspace.CurrentCamera
-local LocalPlayer = Players.LocalPlayer
-local Mouse = LocalPlayer:GetMouse()
-local SoundService = game:GetService("SoundService")
-local VirtualUser = game:GetService("VirtualUser")
-
---// Variables
-local ForcehitEnabled = false
-local SpinbotEnabled = false
-local SpinbotSpeed = 50
-local VanishEnabled = false
-local VanishMethod = "Float"
-local AimbotEnabled = false
-local FOVEnabled = false
-local FOVSize = 100
-local ESPEnabled = false
-local SilentAimEnabled = false
-local Prediction = 0.165
-local RapidFireEnabled = false -- <--- RAPID FIRE ADDED
-
-local hitSound = Instance.new("Sound") -- Hit sound
-hitSound.SoundId = "rbxassetid://1234567890" -- Replace with your sound ID
-hitSound.Volume = 0.5
-hitSound.Parent = SoundService
-
---// FOV Circle
-local FOVCircle = Drawing.new("Circle")
-FOVCircle.Color = Color3.fromRGB(255, 255, 255)
-FOVCircle.Thickness = 2
-FOVCircle.Filled = false
-FOVCircle.Transparency = 0.5
-FOVCircle.Visible = false
-
---// ESP Skeletons
-local Skeletons = {}
-
-local function createSkeleton(player)
-    local skeleton = {}
-    for _, partName in ipairs({"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}) do
-        local line = Drawing.new("Line")
-        line.Color = Color3.fromRGB(255, 255, 255)
-        line.Thickness = 1
-        line.Transparency = 1
-        skeleton[partName] = line
-    end
-    Skeletons[player] = skeleton
-end
-
-local function removeSkeleton(player)
-    if Skeletons[player] then
-        for _, line in pairs(Skeletons[player]) do
-            line:Remove()
-        end
-        Skeletons[player] = nil
-    end
-end
-
-Players.PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(function()
-        createSkeleton(player)
-    end)
 end)
 
-Players.PlayerRemoving:Connect(function(player)
-    removeSkeleton(player)
+-- Aimbot Checkbox
+local aimbotCheckbox = Instance.new("TextButton")
+aimbotCheckbox.Size = UDim2.new(0, 200, 0, 50)
+aimbotCheckbox.Position = UDim2.new(0.5, -100, 0.5, -100)
+aimbotCheckbox.Text = "Enable Aimbot"
+aimbotCheckbox.BackgroundColor3 = settings.aimbotEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+aimbotCheckbox.Parent = screenGui
+
+-- Aimbot Checkbox Toggle Event
+aimbotCheckbox.MouseButton1Click:Connect(function()
+    settings.aimbotEnabled = not settings.aimbotEnabled
+    aimbotCheckbox.Text = settings.aimbotEnabled and "Disable Aimbot" or "Enable Aimbot"
+    aimbotCheckbox.BackgroundColor3 = settings.aimbotEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
 end)
 
-for _, player in ipairs(Players:GetPlayers()) do
-    if player ~= LocalPlayer then
-        createSkeleton(player)
+-- Spinbot Checkbox
+local spinbotCheckbox = Instance.new("TextButton")
+spinbotCheckbox.Size = UDim2.new(0, 200, 0, 50)
+spinbotCheckbox.Position = UDim2.new(0.5, -100, 0.5, -50)
+spinbotCheckbox.Text = "Enable Spinbot"
+spinbotCheckbox.BackgroundColor3 = settings.enableSpinbot and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+spinbotCheckbox.Parent = screenGui
+
+-- Spinbot Checkbox Toggle Event
+spinbotCheckbox.MouseButton1Click:Connect(function()
+    settings.enableSpinbot = not settings.enableSpinbot
+    spinbotCheckbox.Text = settings.enableSpinbot and "Disable Spinbot" or "Enable Spinbot"
+    spinbotCheckbox.BackgroundColor3 = settings.enableSpinbot and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+end)
+
+-- Rapid Fire Function (Always active when key is pressed)
+local function rapidFire()
+    while game:GetService("UserInputService"):IsKeyDown(settings.rapidFireKey) do
+        -- Perform rapid fire by clicking the mouse
+        game:GetService("Players").LocalPlayer.Character.Humanoid:EquipTool(game:GetService("Players").LocalPlayer.Backpack:FindFirstChildOfClass("Tool"))
+        wait(0.1)
     end
 end
 
---// Closest Player Function
-local function getClosestPlayer()
-    local closestPlayer = nil
-    local closestDistance = math.huge
+-- Anti-Resolve Aimbot Function
+local function aimbot()
+    local player = game:GetService("Players").LocalPlayer
+    local mouse = player:GetMouse()
+    while settings.aimbotEnabled and game:GetService("UserInputService"):IsKeyDown(settings.aimbotKey) do
+        local closestEnemy = nil
+        local closestDistance = math.huge
 
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            local pos, onScreen = Camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
-            if onScreen then
-                local distance = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(pos.X, pos.Y)).Magnitude
-                if distance < closestDistance and distance <= FOVSize then
+        -- Search for the closest enemy within the Aimbot's Field of View (FOV)
+        for _, enemy in pairs(game:GetService("Players"):GetPlayers()) do
+            if enemy ~= player and enemy.Character and enemy.Character:FindFirstChild("Head") then
+                local enemyPos = enemy.Character.Head.Position
+                local screenPos, onScreen = workspace.CurrentCamera:WorldToScreenPoint(enemyPos)
+                local distance = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
+
+                if onScreen and distance < settings.aimbotFOV and distance < closestDistance then
                     closestDistance = distance
-                    closestPlayer = player
+                    closestEnemy = enemy
                 end
             end
         end
-    end
 
-    return closestPlayer
-end
-
---// Silent Aim Hook
-local __namecall
-__namecall = hookmetamethod(game, "__namecall", function(self, ...)
-    local method = getnamecallmethod()
-    local args = {...}
-
-    if SilentAimEnabled and tostring(self) == "HitPart" and method == "FireServer" then
-        local closest = getClosestPlayer()
-        if closest and closest.Character and closest.Character:FindFirstChild("HumanoidRootPart") then
-            local predPos = closest.Character.HumanoidRootPart.Position + (closest.Character.HumanoidRootPart.Velocity * Prediction)
-            args[1] = closest.Character.HumanoidRootPart
-            args[2] = predPos
-            hitSound:Play() -- Play hit sound
-            return self.FireServer(self, unpack(args))
+        -- Aim at the closest enemy
+        if closestEnemy then
+            local targetHead = closestEnemy.Character.Head
+            workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, targetHead.Position)
         end
-    end
-
-    return __namecall(self, ...)
-end)
-
---// UI Tabs and Sections
-local CombatTab = Window:CreateTab("Combat", 4483362458)
-local MiscsTab = Window:CreateTab("Miscs", 4483362458)
-
-local CombatSection = CombatTab:CreateSection("Main Combat Features")
-local MiscsSection = MiscsTab:CreateSection("Visuals and Aim Assists")
-
---// Combat Section
-CombatTab:CreateToggle({
-    Name = "Forcehit",
-    CurrentValue = false,
-    Callback = function(Value)
-        ForcehitEnabled = Value
-    end,
-})
-
-CombatTab:CreateToggle({
-    Name = "Spinbot",
-    CurrentValue = false,
-    Callback = function(Value)
-        SpinbotEnabled = Value
-    end,
-})
-
-CombatTab:CreateSlider({
-    Name = "Spinbot Speed",
-    Range = {0, 200},
-    Increment = 5,
-    Suffix = "°/s",
-    CurrentValue = 50,
-    Callback = function(Value)
-        SpinbotSpeed = Value
-    end,
-})
-
-CombatTab:CreateToggle({
-    Name = "Rapid Fire", -- <<<<< Rapid Fire toggle
-    CurrentValue = false,
-    Callback = function(Value)
-        RapidFireEnabled = Value
-    end,
-})
-
-CombatTab:CreateToggle({
-    Name = "Enable Vanish",
-    CurrentValue = false,
-    Callback = function(Value)
-        VanishEnabled = Value
-    end,
-})
-
-CombatTab:CreateDropdown({
-    Name = "Vanish Method",
-    Options = {"Float", "Blink", "Fade"},
-    CurrentOption = "Float",
-    Callback = function(Option)
-        VanishMethod = Option
-    end,
-})
-
---// Miscs Section
-MiscsTab:CreateToggle({
-    Name = "Enable Aimbot",
-    CurrentValue = false,
-    Callback = function(Value)
-        AimbotEnabled = Value
-    end,
-})
-
-MiscsTab:CreateToggle({
-    Name = "Show FOV Circle",
-    CurrentValue = false,
-    Callback = function(Value)
-        FOVEnabled = Value
-        FOVCircle.Visible = Value
-    end,
-})
-
-MiscsTab:CreateSlider({
-    Name = "FOV Size",
-    Range = {50, 500},
-    Increment = 5,
-    Suffix = "px",
-    CurrentValue = 100,
-    Callback = function(Value)
-        FOVSize = Value
-    end,
-})
-
-MiscsTab:CreateToggle({
-    Name = "Enable Skeleton ESP",
-    CurrentValue = false,
-    Callback = function(Value)
-        ESPEnabled = Value
-    end,
-})
-
-MiscsTab:CreateToggle({
-    Name = "Enable Silent Aim",
-    CurrentValue = false,
-    Callback = function(Value)
-        SilentAimEnabled = Value
-    end,
-})
-
---// Auto Update Check
-local function checkForUpdate()
-    local currentVersion = "1.2"
-    local latestVersion = "1.3"
-    if currentVersion ~= latestVersion then
-        print("New update available!")
+        wait(0.02)
     end
 end
 
-checkForUpdate()
+-- Silent Aim Function
+local function silentAim()
+    local player = game:GetService("Players").LocalPlayer
+    local mouse = player:GetMouse()
+    while settings.aimbotEnabled and game:GetService("UserInputService"):IsKeyDown(settings.aimbotKey) do
+        -- Similar to Aimbot, but it does not move the camera directly
+        local closestEnemy = nil
+        local closestDistance = math.huge
 
---// Render Loop
-RunService.RenderStepped:Connect(function()
-    if FOVEnabled then
-        FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y + 36)
-        FOVCircle.Radius = FOVSize
-    end
+        for _, enemy in pairs(game:GetService("Players"):GetPlayers()) do
+            if enemy ~= player and enemy.Character and enemy.Character:FindFirstChild("Head") then
+                local enemyPos = enemy.Character.Head.Position
+                local screenPos, onScreen = workspace.CurrentCamera:WorldToScreenPoint(enemyPos)
+                local distance = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
 
-    if SpinbotEnabled then
-        local character = LocalPlayer.Character
-        if character and character:FindFirstChild("HumanoidRootPart") then
-            character.HumanoidRootPart.CFrame *= CFrame.Angles(0, math.rad(SpinbotSpeed), 0)
-        end
-    end
-
-    if RapidFireEnabled then -- <<<<< Rapid Fire active during every frame
-        VirtualUser:Button1Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-    end
-
-    -- ESP Skeletons
-    for player, skeleton in pairs(Skeletons) do
-        local character = player.Character
-        if character and ESPEnabled then
-            local rootPos, onScreen = Camera:WorldToViewportPoint(character.HumanoidRootPart.Position)
-            if onScreen then
-                local parts = {
-                    Head = character:FindFirstChild("Head"),
-                    Torso = character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso"),
-                    ["Left Arm"] = character:FindFirstChild("LeftUpperArm") or character:FindFirstChild("Left Arm"),
-                    ["Right Arm"] = character:FindFirstChild("RightUpperArm") or character:FindFirstChild("Right Arm"),
-                    ["Left Leg"] = character:FindFirstChild("LeftUpperLeg") or character:FindFirstChild("Left Leg"),
-                    ["Right Leg"] = character:FindFirstChild("RightUpperLeg") or character:FindFirstChild("Right Leg"),
-                }
-
-                if parts.Head and parts.Torso then
-                    skeleton.Head.From = Camera:WorldToViewportPoint(parts.Head.Position)
-                    skeleton.Head.To = Camera:WorldToViewportPoint(parts.Torso.Position)
-                    skeleton.Head.Visible = true
-                end
-                if parts.LeftArm and parts.Torso then
-                    skeleton["Left Arm"].From = Camera:WorldToViewportPoint(parts.LeftArm.Position)
-                    skeleton["Left Arm"].To = Camera:WorldToViewportPoint(parts.Torso.Position)
-                    skeleton["Left Arm"].Visible = true
-                end
-                if parts.RightArm and parts.Torso then
-                    skeleton["Right Arm"].From = Camera:WorldToViewportPoint(parts.RightArm.Position)
-                    skeleton["Right Arm"].To = Camera:WorldToViewportPoint(parts.Torso.Position)
-                    skeleton["Right Arm"].Visible = true
-                end
-                if parts.LeftLeg and parts.Torso then
-                    skeleton["Left Leg"].From = Camera:WorldToViewportPoint(parts.LeftLeg.Position)
-                    skeleton["Left Leg"].To = Camera:WorldToViewportPoint(parts.Torso.Position)
-                    skeleton["Left Leg"].Visible = true
-                end
-                if parts.RightLeg and parts.Torso then
-                    skeleton["Right Leg"].From = Camera:WorldToViewportPoint(parts.RightLeg.Position)
-                    skeleton["Right Leg"].To = Camera:WorldToViewportPoint(parts.Torso.Position)
-                    skeleton["Right Leg"].Visible = true
-                end
-            else
-                for _, line in pairs(skeleton) do
-                    line.Visible = false
+                if onScreen and distance < settings.aimbotFOV and distance < closestDistance then
+                    closestDistance = distance
+                    closestEnemy = enemy
                 end
             end
+        end
+
+        if closestEnemy then
+            -- Simulate shooting at the enemy's head without camera movement
+            local targetHead = closestEnemy.Character.Head
+            -- Implement silent aim logic here (e.g., using a hidden gun tool or external trigger)
+        end
+        wait(0.02)
+    end
+end
+
+-- Spinbot Function
+local function spinbot()
+    local player = game:GetService("Players").LocalPlayer
+    while settings.enableSpinbot and game:GetService("UserInputService"):IsKeyDown(settings.spinbotKey) do
+        -- Spin the player around while in the air (flying)
+        player.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(settings.spinSpeed), 0)
+        wait(0.01)
+    end
+end
+
+-- Main Loop (Check for Keypresses and Update States)
+while true do
+    -- Rapid Fire
+    if game:GetService("UserInputService"):IsKeyDown(settings.rapidFireKey) then
+        rapidFire()
+    end
+
+    -- Aimbot (with Anti-Resolve and Silent Aim)
+    if settings.aimbotEnabled and game:GetService("UserInputService"):IsKeyDown(settings.aimbotKey) then
+        if settings.antiResolve then
+            -- Implement Anti-Resolve Logic (e.g., delay shots or aim at specific body parts)
+        end
+        if settings.silentAim then
+            silentAim()
         else
-            for _, line in pairs(skeleton) do
-                line.Visible = false
-            end
+            aimbot()
         end
     end
-end)
+
+    -- Spinbot
+    if settings.enableSpinbot then
+        spinbot()
+    end
+
+    wait(0.01)
+end
