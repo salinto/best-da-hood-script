@@ -1,31 +1,7 @@
---// Load Yena Library
-loadstring(game:HttpGet('https://raw.githubusercontent.com/salinto/best-da-hood-script/refs/heads/main/yena.lua'))()
-
-local Window = Yena:CreateWindow({
-    Name = "JuggyWare | Premium v1.2",
-    LoadingTitle = "JuggyWare | Loading...",
-    LoadingSubtitle = "by JuggyWare dev",
-    ConfigurationSaving = {
-        Enabled = true,
-        FolderName = "JuggyWarePremium",
-        FileName = "Settings"
-    },
-    Discord = {
-        Enabled = false,
-        Invite = "", -- Add Discord invite code here if you want
-        RememberJoins = true
-    },
-    KeySystem = true,
-    KeySettings = {
-        Title = "JuggyWare | Key System",
-        Subtitle = "Key = juggyisgod",
-        Note = "Join Discord for key.",
-        FileName = "juggyKeySave",
-        SaveKey = true,
-        GrabKeyFromSite = false,
-        Key = {"juggyisgod"}
-    }
-})
+--// Key System Variables
+local Key = "juggyisgod"  -- Correct key to proceed
+local KeySaved = false  -- Track whether the key has been saved
+local KeyInput = nil  -- Store the user input key
 
 --// Services
 local RunService = game:GetService("RunService")
@@ -63,88 +39,75 @@ FOVCircle.Filled = false
 FOVCircle.Transparency = 0.5
 FOVCircle.Visible = false
 
---// ESP Skeletons
-local Skeletons = {}
+--// Key System Setup
+local function createKeyInputUI()
+    -- If the key has been validated, remove the key input UI.
+    if KeySaved then return end
 
-local function createSkeleton(player)
-    local skeleton = {}
-    for _, partName in ipairs({"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}) do
-        local line = Drawing.new("Line")
-        line.Color = Color3.fromRGB(255, 255, 255)
-        line.Thickness = 1
-        line.Transparency = 1
-        skeleton[partName] = line
-    end
-    Skeletons[player] = skeleton
-end
+    local KeyUI = Instance.new("ScreenGui")
+    KeyUI.Name = "KeyUI"
+    KeyUI.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+    
+    local TextBox = Instance.new("TextBox")
+    TextBox.Size = UDim2.new(0, 300, 0, 50)
+    TextBox.Position = UDim2.new(0.5, -150, 0.5, -25)
+    TextBox.PlaceholderText = "Enter Key"
+    TextBox.Parent = KeyUI
 
-local function removeSkeleton(player)
-    if Skeletons[player] then
-        for _, line in pairs(Skeletons[player]) do
-            line:Remove()
+    local SubmitButton = Instance.new("TextButton")
+    SubmitButton.Size = UDim2.new(0, 300, 0, 50)
+    SubmitButton.Position = UDim2.new(0.5, -150, 0.5, 25)
+    SubmitButton.Text = "Submit"
+    SubmitButton.Parent = KeyUI
+
+    SubmitButton.MouseButton1Click:Connect(function()
+        KeyInput = TextBox.Text
+        if KeyInput == Key then
+            KeySaved = true
+            KeyUI:Destroy()  -- Remove the key input UI
+            print("Key verified successfully!")
+        else
+            print("Invalid key! Please try again.")
+            TextBox.Text = ""  -- Clear the input if it's wrong
         end
-        Skeletons[player] = nil
-    end
-end
-
-Players.PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(function()
-        createSkeleton(player)
     end)
-end)
-
-Players.PlayerRemoving:Connect(function(player)
-    removeSkeleton(player)
-end)
-
-for _, player in ipairs(Players:GetPlayers()) do
-    if player ~= LocalPlayer then
-        createSkeleton(player)
-    end
 end
 
---// Closest Player Function
-local function getClosestPlayer()
-    local closestPlayer = nil
-    local closestDistance = math.huge
-
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            local pos, onScreen = Camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
-            if onScreen then
-                local distance = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(pos.X, pos.Y)).Magnitude
-                if distance < closestDistance and distance <= FOVSize then
-                    closestDistance = distance
-                    closestPlayer = player
-                end
-            end
-        end
-    end
-
-    return closestPlayer
+-- Check if the key is saved or prompt for input
+if not KeySaved then
+    createKeyInputUI()
+else
+    print("Key system validated.")
 end
 
---// Silent Aim Hook
-local __namecall
-__namecall = hookmetamethod(game, "__namecall", function(self, ...)
-    local method = getnamecallmethod()
-    local args = {...}
+--// UI Setup with Yena
+local Window = Yena:CreateWindow({
+    Name = "JuggyWare | Premium v1.2",
+    LoadingTitle = "JuggyWare | Loading...",
+    LoadingSubtitle = "by JuggyWare dev",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "JuggyWarePremium",
+        FileName = "Settings"
+    },
+    Discord = {
+        Enabled = false,
+        Invite = "", -- Add Discord invite code here if you want
+        RememberJoins = true
+    },
+    KeySystem = true,
+    KeySettings = {
+        Title = "JuggyWare | Key System",
+        Subtitle = "Key = juggyisgod",
+        Note = "Join Discord for key.",
+        FileName = "juggyKeySave",
+        SaveKey = true,
+        GrabKeyFromSite = false,
+        Key = {"juggyisgod"}
+    }
+})
 
-    if SilentAimEnabled and tostring(self) == "HitPart" and method == "FireServer" then
-        local closest = getClosestPlayer()
-        if closest and closest.Character and closest.Character:FindFirstChild("HumanoidRootPart") then
-            local predPos = closest.Character.HumanoidRootPart.Position + (closest.Character.HumanoidRootPart.Velocity * Prediction)
-            args[1] = closest.Character.HumanoidRootPart
-            args[2] = predPos
-            hitSound:Play() -- Play hit sound
-            return self.FireServer(self, unpack(args))
-        end
-    end
-
-    return __namecall(self, ...)
-end)
-
---// UI Tabs and Sections
+--// Combat Tab UI Controls
 local CombatTab = Window:CreateTab("Combat", 4483362458)
 local MiscsTab = Window:CreateTab("Miscs", 4483362458)
 
@@ -262,6 +225,9 @@ checkForUpdate()
 
 --// Render Loop
 RunService.RenderStepped:Connect(function()
+    -- Ensure the key system validation is handled
+    if not KeySaved then return end  -- Do not run any features until key is validated
+
     if FOVEnabled then
         FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y + 36)
         FOVCircle.Radius = FOVSize
