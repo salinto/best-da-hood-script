@@ -2,12 +2,12 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "plaq | Premium v1.2",
-   LoadingTitle = "plaq | Loading...",
-   LoadingSubtitle = "by plaq dev",
+   Name = "jugg | Premium v1.2",
+   LoadingTitle = "jugg | Loading...",
+   LoadingSubtitle = "by jugg dev",
    ConfigurationSaving = {
       Enabled = true,
-      FolderName = "PlaqPremium",
+      FolderName = "JuggPremium",
       FileName = "Settings"
    },
    Discord = {
@@ -17,13 +17,13 @@ local Window = Rayfield:CreateWindow({
    },
    KeySystem = true,
    KeySettings = {
-      Title = "plaq | Key System",
-      Subtitle = "Key = plaqisgod",
+      Title = "jugg | Key System",
+      Subtitle = "Key = juggsarecool",
       Note = "Join Discord for key.",
-      FileName = "plaqKeySave",
+      FileName = "juggKeySave",
       SaveKey = true,
       GrabKeyFromSite = false,
-      Key = {"plaqisgod"}
+      Key = {"juggsarecool"}
    }
 })
 
@@ -44,6 +44,8 @@ local RapidFireKey = Enum.KeyCode.Space  -- Default key for Rapid Fire
 local Prediction = 0.165
 local GodModeEnabled = false
 local GodFistEnabled = false
+local SilentAimEnabled = false
+local ESPEnabled = false
 
 --// FOV Circle
 local FOVCircle = Drawing.new("Circle")
@@ -208,12 +210,20 @@ CombatTab:CreateToggle({
     end,
 })
 
---// Miscs Section
+--// Miscs Section (Visuals, Silent Aim, etc.)
 MiscsTab:CreateToggle({
-    Name = "Enable Aimbot",
+    Name = "Enable Silent Aim",
     CurrentValue = false,
     Callback = function(Value)
-        AimbotEnabled = Value
+        SilentAimEnabled = Value
+    end,
+})
+
+MiscsTab:CreateToggle({
+    Name = "Enable Skeleton ESP",
+    CurrentValue = false,
+    Callback = function(Value)
+        ESPEnabled = Value
     end,
 })
 
@@ -233,22 +243,6 @@ MiscsTab:CreateSlider({
     CurrentValue = 100,
     Callback = function(Value)
         FOVSize = Value
-    end,
-})
-
-MiscsTab:CreateToggle({
-    Name = "Enable Skeleton ESP",
-    CurrentValue = false,
-    Callback = function(Value)
-        ESPEnabled = Value
-    end,
-})
-
-MiscsTab:CreateToggle({
-    Name = "Enable Silent Aim",
-    CurrentValue = false,
-    Callback = function(Value)
-        SilentAimEnabled = Value
     end,
 })
 
@@ -315,3 +309,4 @@ RunService.RenderStepped:Connect(function()
         -- Implement God Fist logic (could involve instant KO or increased damage)
     end
 end)
+
