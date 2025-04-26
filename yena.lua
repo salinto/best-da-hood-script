@@ -140,13 +140,10 @@ end)
 local CombatTab = Window:CreateTab("Combat", 4483362458)
 local MiscsTab = Window:CreateTab("Miscs", 4483362458)
 
--- Ensure that the Miscs tab and section are being created
-print("MiscsTab Created")
-
 local CombatSection = CombatTab:CreateSection("Main Combat Features")
 local MiscsSection = MiscsTab:CreateSection("Visuals and Aim Assists")
 
--- Now, we add the toggles and sliders for the Miscs Tab
+-- Miscs Tab Toggles and Sliders
 MiscsTab:CreateToggle({
     Name = "Enable Silent Aim",
     CurrentValue = false,
