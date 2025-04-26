@@ -1,74 +1,29 @@
---// Key System Variables
-local Key = "juggyisgod"  -- Correct key to proceed
-local KeySaved = false  -- Track whether the key has been saved
-local KeyInput = ""  -- Store the user input key
-
---// Services
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
-local Camera = workspace.CurrentCamera
-local LocalPlayer = Players.LocalPlayer
-local Mouse = LocalPlayer:GetMouse()
-local SoundService = game:GetService("SoundService")
-local VirtualUser = game:GetService("VirtualUser")
-
---// Key System Setup
-local function createKeyInputUI()
-    -- If the key has been validated, remove the key input UI.
-    if KeySaved then return end
-
-    -- Create UI
-    local KeyUI = Instance.new("ScreenGui")
-    KeyUI.Name = "KeyUI"
-    KeyUI.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-    
-    local TextBox = Instance.new("TextBox")
-    TextBox.Size = UDim2.new(0, 300, 0, 50)
-    TextBox.Position = UDim2.new(0.5, -150, 0.5, -25)
-    TextBox.PlaceholderText = "Enter Key"
-    TextBox.Parent = KeyUI
-
-    local SubmitButton = Instance.new("TextButton")
-    SubmitButton.Size = UDim2.new(0, 300, 0, 50)
-    SubmitButton.Position = UDim2.new(0.5, -150, 0.5, 25)
-    SubmitButton.Text = "Submit"
-    SubmitButton.Parent = KeyUI
-
-    -- Button Click Logic
-    SubmitButton.MouseButton1Click:Connect(function()
-        KeyInput = TextBox.Text
-        if KeyInput == Key then
-            KeySaved = true
-            KeyUI:Destroy()  -- Remove the key input UI
-            print("Key verified successfully!")
-        else
-            print("Invalid key! Please try again.")
-            TextBox.Text = ""  -- Clear the input if it's wrong
+--// Key System
+local function checkKey(key)
+    local validKeys = {"juggyisgod"}  -- List of valid keys
+    for _, validKey in pairs(validKeys) do
+        if key == validKey then
+            return true
         end
-    end)
+    end
+    return false
 end
 
--- Show Key UI if the key isn't saved
-if not KeySaved then
-    createKeyInputUI()
+-- Prompt the user to enter the key (you can replace this with a UI element to input the key)
+local userKey = game:GetService("Players").LocalPlayer.PlayerGui:WaitForChild("InputBox"):GetText()
+
+if checkKey(userKey) then
+    -- Key is valid, now load the script
+    local scriptURL = 'https://raw.githubusercontent.com/salinto/best-da-hood-script/refs/heads/main/yena.lua'
+    loadstring(game:HttpGet(scriptURL))()
 else
-    print("Key system validated.")
+    -- Invalid key
+    print("Invalid key!")
 end
 
---// Combat Section (other features)
-local ForcehitEnabled = false
-local SpinbotEnabled = false
-local SpinbotSpeed = 50
-local VanishEnabled = false
-local VanishMethod = "Float"
-local AimbotEnabled = false
-local FOVEnabled = false
-local FOVSize = 100
-local ESPEnabled = false
-local SilentAimEnabled = false
-local RapidFireEnabled = false -- <--- RAPID FIRE ADDED
+--// Yena Library and UI Setup (after loading the script)
+local Yena = loadstring(game:HttpGet('https://raw.githubusercontent.com/salinto/best-da-hood-script/refs/heads/main/yena.lua'))()
 
---// UI Setup with Yena
 local Window = Yena:CreateWindow({
     Name = "JuggyWare | Premium v1.2",
     LoadingTitle = "JuggyWare | Loading...",
@@ -95,7 +50,124 @@ local Window = Yena:CreateWindow({
     }
 })
 
---// Combat Tab UI Controls
+--// Services
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+local SoundService = game:GetService("SoundService")
+local VirtualUser = game:GetService("VirtualUser")
+
+--// Variables
+local ForcehitEnabled = false
+local SpinbotEnabled = false
+local SpinbotSpeed = 50
+local VanishEnabled = false
+local VanishMethod = "Float"
+local AimbotEnabled = false
+local FOVEnabled = false
+local FOVSize = 100
+local ESPEnabled = false
+local SilentAimEnabled = false
+local Prediction = 0.165
+local RapidFireEnabled = false -- <--- RAPID FIRE ADDED
+
+local hitSound = Instance.new("Sound") -- Hit sound
+hitSound.SoundId = "rbxassetid://1234567890" -- Replace with your sound ID
+hitSound.Volume = 0.5
+hitSound.Parent = SoundService
+
+--// FOV Circle
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Color = Color3.fromRGB(255, 255, 255)
+FOVCircle.Thickness = 2
+FOVCircle.Filled = false
+FOVCircle.Transparency = 0.5
+FOVCircle.Visible = false
+
+--// ESP Skeletons
+local Skeletons = {}
+
+local function createSkeleton(player)
+    local skeleton = {}
+    for _, partName in ipairs({"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}) do
+        local line = Drawing.new("Line")
+        line.Color = Color3.fromRGB(255, 255, 255)
+        line.Thickness = 1
+        line.Transparency = 1
+        skeleton[partName] = line
+    end
+    Skeletons[player] = skeleton
+end
+
+local function removeSkeleton(player)
+    if Skeletons[player] then
+        for _, line in pairs(Skeletons[player]) do
+            line:Remove()
+        end
+        Skeletons[player] = nil
+    end
+end
+
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function()
+        createSkeleton(player)
+    end)
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    removeSkeleton(player)
+end)
+
+for _, player in ipairs(Players:GetPlayers()) do
+    if player ~= LocalPlayer then
+        createSkeleton(player)
+    end
+end
+
+--// Closest Player Function
+local function getClosestPlayer()
+    local closestPlayer = nil
+    local closestDistance = math.huge
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local pos, onScreen = Camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
+            if onScreen then
+                local distance = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(pos.X, pos.Y)).Magnitude
+                if distance < closestDistance and distance <= FOVSize then
+                    closestDistance = distance
+                    closestPlayer = player
+                end
+            end
+        end
+    end
+
+    return closestPlayer
+end
+
+--// Silent Aim Hook
+local __namecall
+__namecall = hookmetamethod(game, "__namecall", function(self, ...)
+    local method = getnamecallmethod()
+    local args = {...}
+
+    if SilentAimEnabled and tostring(self) == "HitPart" and method == "FireServer" then
+        local closest = getClosestPlayer()
+        if closest and closest.Character and closest.Character:FindFirstChild("HumanoidRootPart") then
+            local predPos = closest.Character.HumanoidRootPart.Position + (closest.Character.HumanoidRootPart.Velocity * Prediction)
+            args[1] = closest.Character.HumanoidRootPart
+            args[2] = predPos
+            hitSound:Play() -- Play hit sound
+            return self.FireServer(self, unpack(args))
+        end
+    end
+
+    return __namecall(self, ...)
+end)
+
+--// UI Tabs and Sections
 local CombatTab = Window:CreateTab("Combat", 4483362458)
 local MiscsTab = Window:CreateTab("Miscs", 4483362458)
 
@@ -169,6 +241,7 @@ MiscsTab:CreateToggle({
     CurrentValue = false,
     Callback = function(Value)
         FOVEnabled = Value
+        FOVCircle.Visible = Value
     end,
 })
 
@@ -212,8 +285,71 @@ checkForUpdate()
 
 --// Render Loop
 RunService.RenderStepped:Connect(function()
-    -- Ensure the key system validation is handled
-    if not KeySaved then return end  -- Do not run any features until key is validated
+    if FOVEnabled then
+        FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y + 36)
+        FOVCircle.Radius = FOVSize
+    end
 
-    -- Example: Implement features like Forcehit, FOV, etc. here.
+    if SpinbotEnabled then
+        local character = LocalPlayer.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            character.HumanoidRootPart.CFrame *= CFrame.Angles(0, math.rad(SpinbotSpeed), 0)
+        end
+    end
+
+    if RapidFireEnabled then -- <<<<< Rapid Fire active during every frame
+        VirtualUser:Button1Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    end
+
+    -- ESP Skeletons
+    for player, skeleton in pairs(Skeletons) do
+        local character = player.Character
+        if character and ESPEnabled then
+            local rootPos, onScreen = Camera:WorldToViewportPoint(character.HumanoidRootPart.Position)
+            if onScreen then
+                local parts = {
+                    Head = character:FindFirstChild("Head"),
+                    Torso = character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso"),
+                    ["Left Arm"] = character:FindFirstChild("LeftUpperArm") or character:FindFirstChild("Left Arm"),
+                    ["Right Arm"] = character:FindFirstChild("RightUpperArm") or character:FindFirstChild("Right Arm"),
+                    ["Left Leg"] = character:FindFirstChild("LeftUpperLeg") or character:FindFirstChild("Left Leg"),
+                    ["Right Leg"] = character:FindFirstChild("RightUpperLeg") or character:FindFirstChild("Right Leg"),
+                }
+
+                if parts.Head and parts.Torso then
+                    skeleton.Head.From = Camera:WorldToViewportPoint(parts.Head.Position)
+                    skeleton.Head.To = Camera:WorldToViewportPoint(parts.Torso.Position)
+                    skeleton.Head.Visible = true
+                end
+                if parts.LeftArm and parts.Torso then
+                    skeleton["Left Arm"].From = Camera:WorldToViewportPoint(parts.LeftArm.Position)
+                    skeleton["Left Arm"].To = Camera:WorldToViewportPoint(parts.Torso.Position)
+                    skeleton["Left Arm"].Visible = true
+                end
+                if parts.RightArm and parts.Torso then
+                    skeleton["Right Arm"].From = Camera:WorldToViewportPoint(parts.RightArm.Position)
+                    skeleton["Right Arm"].To = Camera:WorldToViewportPoint(parts.Torso.Position)
+                    skeleton["Right Arm"].Visible = true
+                end
+                if parts.LeftLeg and parts.Torso then
+                    skeleton["Left Leg"].From = Camera:WorldToViewportPoint(parts.LeftLeg.Position)
+                    skeleton["Left Leg"].To = Camera:WorldToViewportPoint(parts.Torso.Position)
+                    skeleton["Left Leg"].Visible = true
+                end
+                if parts.RightLeg and parts.Torso then
+                    skeleton["Right Leg"].From = Camera:WorldToViewportPoint(parts.RightLeg.Position)
+                    skeleton["Right Leg"].To = Camera:WorldToViewportPoint(parts.Torso.Position)
+                    skeleton["Right Leg"].Visible = true
+                end
+            else
+                for _, line in pairs(skeleton) do
+                    line.Visible = false
+                end
+            end
+        else
+            for _, line in pairs(skeleton) do
+                line.Visible = false
+            end
+        end
+    end
 end)
