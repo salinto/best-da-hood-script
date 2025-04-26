@@ -1,6 +1,7 @@
 local TweenService = game:GetService('TweenService')
 local UserInputService = game:GetService('UserInputService')
 
+-- Ensure that the Library is available
 local Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Library.lua'))()
 local ThemeManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/addons/ThemeManager.lua'))()
 local SaveManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/addons/SaveManager.lua'))()
@@ -14,12 +15,12 @@ local function toggleMouseCursor()
     UserInputService.MouseIconEnabled = mouseCursorEnabled
 end
 
--- Button to toggle the cursor visibility
+-- Basic GUI Setup
 local Window = Library:CreateWindow({
     Title = 'Etiquette Internal',
     Center = true,
     AutoShow = true,
-    Size = Vector2.new(320, 240),
+    Size = Vector2.new(320, 240),  -- Window size for mobile and PC
 })
 
 -- Add a button to toggle the cursor visibility
@@ -27,13 +28,13 @@ Window:AddButton('Toggle Cursor', function()
     toggleMouseCursor()
 end)
 
--- Tabs
+-- Create Tabs
 local MainTab = Window:AddTab('Main')
 local WeaponsTab = Window:AddTab('Weapons')
 local ModificationsTab = Window:AddTab('Mods')
 local SettingsTab = Window:AddTab('Settings')
 
--- Aimbot group
+-- Aimbot Settings
 local AimbotGroup = MainTab:AddLeftGroupbox('Aimbot')
 
 AimbotGroup:AddToggle('Enable', { Text = 'Enable', Default = false })
@@ -118,7 +119,7 @@ SaveManager:IgnoreThemeSettings()
 SaveManager:SetFolder('EtiquetteInternal')
 SaveManager:BuildConfigSection(SettingsTab)
 
--- Make it draggable
+-- Make the window draggable
 local dragging = false
 local dragInput, dragStart, startPos
 
