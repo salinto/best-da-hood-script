@@ -35,7 +35,7 @@ local AimbotShake = 0.5
 local AimbotHitPart = "Head"
 local IsLocking = false
 local CurrentTarget = nil
-local FOVEnabled = false -- Variable to check if FOV is enabled
+local FOVEnabled = false -- Variable to enable/disable FOV circle
 
 -- Drawing FOV Circle
 local FOVCircle = Drawing.new("Circle")
@@ -56,9 +56,9 @@ AimbotGroup:AddToggle('AimEnabled', {
     end
 })
 
--- FOV Checkbox and Slider
+-- FOV Checkbox
 AimbotGroup:AddToggle('FOVEnabled', {
-    Text = 'Enable FOV',
+    Text = 'Enable FOV Circle',
     Default = false,
     Callback = function(Value)
         FOVEnabled = Value
@@ -66,7 +66,8 @@ AimbotGroup:AddToggle('FOVEnabled', {
     end
 })
 
-AimbotGroup:AddSlider('FOVSlider', {
+-- FOV Size Slider
+AimbotGroup:AddSlider('FOVSizeSlider', {
     Text = 'FOV Size',
     Default = 100,
     Min = 50,
