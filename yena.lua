@@ -1,149 +1,164 @@
--- Load Libraries
+-- Load libraries
 local Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Library.lua'))()
 local ThemeManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/addons/ThemeManager.lua'))()
 local SaveManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/addons/SaveManager.lua'))()
 
--- Create the main window
+-- Window Setup
 local Window = Library:CreateWindow({
-    Title = "Advanced Aimbot GUI",
+    Title = 'Aimbot Script | Linoria UI',
     Center = true,
     AutoShow = true,
 })
 
--- Tabs
 local Tabs = {
-    Aimbot = Window:AddTab("Aimbot"),
+    Aimbot = Window:AddTab('Aimbot')
 }
 
--- Groups (sections inside the tab)
-local AimbotOptions = Tabs.Aimbot:AddLeftGroupbox("Aimbot Settings")
-
-AimbotOptions:AddToggle("AimbotEnabled", {
-    Text = "Enable Aimbot",
-    Default = false,
-})
-
-AimbotOptions:AddDropdown("AimbotHitPart", {
-    Values = { "Head", "HumanoidRootPart", "UpperTorso", "LowerTorso" },
-    Default = 1,
-    Multi = false,
-    Text = "Hit Part",
-})
-
-AimbotOptions:AddSlider("PredictionAmount", {
-    Text = "Prediction Amount",
-    Default = 0.165,
-    Min = 0,
-    Max = 1,
-    Rounding = 3,
-})
-
-AimbotOptions:AddSlider("Smoothness", {
-    Text = "Aimbot Smoothness",
-    Default = 5,
-    Min = 1,
-    Max = 50,
-    Rounding = 0,
-})
-
-AimbotOptions:AddSlider("ShakeAmount", {
-    Text = "Shake Amount",
-    Default = 0,
-    Min = 0,
-    Max = 2,
-    Rounding = 2,
-})
-
-AimbotOptions:AddToggle("ShowFOV", {
-    Text = "Show FOV Circle",
-    Default = true,
-})
-
-AimbotOptions:AddColorPicker("FOVColor", {
-    Default = Color3.fromRGB(255, 0, 0),
-    Title = "FOV Circle Color",
-})
-
--- Save Manager
-SaveManager:SetLibrary(Library)
-SaveManager:BuildFolder("AdvancedAimbot")
-SaveManager:IgnoreThemeSettings()
-SaveManager:BuildConfigSection(Tabs.Aimbot)
-
--- Theme Manager
-ThemeManager:SetLibrary(Library)
-ThemeManager:ApplyToTab(Tabs.Aimbot)
-
--------------------------------------------------------------------------------------------
--- Aimbot Code
--------------------------------------------------------------------------------------------
-
-local RunService = game:GetService("RunService")
+-- Services
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
--- Create FOV Circle
+-- Aimbot Variables
+local AimbotEnabled = false
+local AimbotSmoothness = 0.1
+local AimbotPrediction = 0.165
+local AimbotHitPart = "Head"
+local AimbotShake = 0
+local AimbotFOV = 100
+local AimbotLockKey = Enum.KeyCode.E
+local AimbotMode = "Legit" -- "Legit" or "Blatant"
+local IsLocking = false
+
+-- Draw FOV Circle
 local FOVCircle = Drawing.new("Circle")
-FOVCircle.Visible = false
+FOVCircle.Color = Color3.fromRGB(255, 255, 255)
 FOVCircle.Thickness = 2
-FOVCircle.NumSides = 100
-FOVCircle.Radius = 100
+FOVCircle.Radius = AimbotFOV
 FOVCircle.Filled = false
-FOVCircle.Color = Color3.fromRGB(255, 0, 0)
+FOVCircle.Visible = true
 
-RunService.RenderStepped:Connect(function()
-    -- Update FOV Circle
-    FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y)
-    FOVCircle.Visible = Library.Flags.ShowFOV
-    FOVCircle.Color = Library.Flags.FOVColor
-end)
+-- UI Elements
+local AimbotGroup = Tabs.Aimbot:AddLeftGroupbox('Main Settings')
 
--- Get closest enemy function
-local function GetClosestEnemy()
-    local closestEnemy = nil
-    local shortestDistance = math.huge
+AimbotGroup:AddToggle('AimEnabled', {
+    Text = 'Enable Aimbot',
+    Default = false,
+    Callback = function(Value)
+        AimbotEnabled = Value
+    end
+})
 
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
-            local screenPoint, onScreen = workspace.CurrentCamera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
-            if onScreen then
-                local distance = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(screenPoint.X, screenPoint.Y)).Magnitude
-                if distance < shortestDistance then
-                    shortestDistance = distance
-                    closestEnemy = player
+AimbotGroup:AddSlider('FOVSize', {
+    Text = 'FOV Radius',
+    Default = 100,
+    Min = 10,
+    Max = 500,
+    Rounding = 0,
+    Callback = function(Value)
+        AimbotFOV = Value
+        FOVCircle.Radius = Value
+    end
+})
+
+AimbotGroup:AddDropdown('ModeSelect', {
+    Values = {'Legit', 'Blatant'},
+    Default = 1,
+    Multi = false,
+    Text = 'Aimbot Mode',
+    Callback = function(Value)
+        AimbotMode = Value
+        if AimbotMode == "Legit" then
+            AimbotSmoothness = 0.2
+            AimbotPrediction = 0.13
+            AimbotShake = 0.5
+        elseif AimbotMode == "Blatant" then
+            AimbotSmoothness = 1
+            AimbotPrediction = 0.165
+            AimbotShake = 0
+        end
+    end
+})
+
+AimbotGroup:AddDropdown('HitPart', {
+    Values = {'Head', 'HumanoidRootPart', 'UpperTorso', 'LowerTorso'},
+    Default = 1,
+    Multi = false,
+    Text = 'HitPart',
+    Callback = function(Value)
+        AimbotHitPart = Value
+    end
+})
+
+AimbotGroup:AddLabel('Aimbot Keybind')
+
+AimbotGroup:AddKeyPicker('AimLockKey', {
+    Default = 'E',
+    SyncToggleState = false,
+    Mode = 'Toggle', -- Toggle means press once = ON, press again = OFF
+    Text = 'Lock Target Key',
+    NoUI = false,
+    Callback = function(Value)
+        AimbotLockKey = Value
+    end
+})
+
+-- Aimbot Functions
+local function GetClosestPlayer()
+    local ClosestPlayer = nil
+    local ClosestDistance = math.huge
+    for _, Player in pairs(Players:GetPlayers()) do
+        if Player ~= LocalPlayer and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+            local Pos, OnScreen = workspace.CurrentCamera:WorldToViewportPoint(Player.Character.HumanoidRootPart.Position)
+            if OnScreen then
+                local Distance = (Vector2.new(Pos.X, Pos.Y) - Vector2.new(Mouse.X, Mouse.Y)).Magnitude
+                if Distance < ClosestDistance and Distance < AimbotFOV then
+                    ClosestDistance = Distance
+                    ClosestPlayer = Player
                 end
             end
         end
     end
-    return closestEnemy
+    return ClosestPlayer
 end
 
--- Aimbot Logic
+-- Main Aimbot Loop
 RunService.RenderStepped:Connect(function()
-    if not Library.Flags.AimbotEnabled then return end
+    FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y)
+    
+    if AimbotEnabled and IsLocking then
+        local Target = GetClosestPlayer()
+        if Target and Target.Character and Target.Character:FindFirstChild(AimbotHitPart) then
+            local TargetPart = Target.Character[AimbotHitPart]
+            local PredictedPosition = TargetPart.Position + (TargetPart.Velocity * AimbotPrediction)
+            local Camera = workspace.CurrentCamera
+            local NewCFrame = CFrame.new(Camera.CFrame.Position, PredictedPosition)
 
-    local target = GetClosestEnemy()
-    if target and target.Character then
-        local aimPart = target.Character:FindFirstChild(Library.Flags.AimbotHitPart)
-        if aimPart then
-            -- Prediction
-            local predictVelocity = aimPart.Velocity * Library.Flags.PredictionAmount
-            local predictedPosition = aimPart.Position + predictVelocity
+            -- Optional Shake for Legit
+            local ShakeOffset = Vector3.new(
+                (math.random() - 0.5) * 2 * AimbotShake,
+                (math.random() - 0.5) * 2 * AimbotShake,
+                (math.random() - 0.5) * 2 * AimbotShake
+            )
 
-            -- Smoothness calculation
-            local camera = workspace.CurrentCamera
-            local direction = (predictedPosition - camera.CFrame.Position).Unit
-            local targetCFrame = CFrame.lookAt(camera.CFrame.Position, predictedPosition)
-
-            local smoothness = Library.Flags.Smoothness or 5
-            local shake = (Vector3.new(
-                (math.random() - 0.5) * Library.Flags.ShakeAmount,
-                (math.random() - 0.5) * Library.Flags.ShakeAmount,
-                (math.random() - 0.5) * Library.Flags.ShakeAmount
-            ))
-
-            camera.CFrame = camera.CFrame:Lerp(targetCFrame * CFrame.new(shake), 1 / smoothness)
+            Camera.CFrame = Camera.CFrame:Lerp(NewCFrame * CFrame.new(ShakeOffset), AimbotSmoothness)
         end
     end
 end)
+
+-- Lock Keybind
+game:GetService("UserInputService").InputBegan:Connect(function(input, processed)
+    if processed then return end
+    if input.KeyCode == AimbotLockKey then
+        IsLocking = not IsLocking
+    end
+end)
+
+-- Theme & Save
+ThemeManager:SetLibrary(Library)
+SaveManager:SetLibrary(Library)
+SaveManager:IgnoreThemeSettings()
+
+SaveManager:SetFolder('MyAimbot')
+SaveManager:BuildConfigSection(Tabs.Aimbot)
