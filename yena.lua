@@ -35,13 +35,14 @@ local AimbotShake = 0.5
 local AimbotHitPart = "Head"
 local IsLocking = false
 local CurrentTarget = nil
+local FOVEnabled = false -- Variable to check if FOV is enabled
 
 -- Drawing FOV Circle
 local FOVCircle = Drawing.new("Circle")
 FOVCircle.Color = Color3.fromRGB(255, 255, 255)
 FOVCircle.Thickness = 2
 FOVCircle.Filled = false
-FOVCircle.Visible = true
+FOVCircle.Visible = false -- Initially hidden
 
 -- UI Setup
 local AimbotGroup = Tabs.Aimbot:AddLeftGroupbox('Main')
@@ -55,42 +56,24 @@ AimbotGroup:AddToggle('AimEnabled', {
     end
 })
 
--- FOV Size Input Box
-AimbotGroup:AddInput('FOVInput', {
-    Default = '100',
-    Numeric = true,
-    Finished = true,
-    Text = 'FOV Size',
-    Tooltip = 'Type your FOV manually',
-    Placeholder = '100',
+-- FOV Checkbox and Slider
+AimbotGroup:AddToggle('FOVEnabled', {
+    Text = 'Enable FOV',
+    Default = false,
     Callback = function(Value)
-        local Number = tonumber(Value)
-        if Number then
-            BaseFOV = Number
-            AimbotFOV = Number
-        end
+        FOVEnabled = Value
+        FOVCircle.Visible = FOVEnabled -- Toggle visibility of FOV circle
     end
 })
 
--- FOV Toggle Checkbox
-AimbotGroup:AddToggle('ShowFOV', {
-    Text = 'Show FOV Circle',
-    Default = true,
-    Callback = function(Value)
-        FOVCircle.Visible = Value
-    end
-})
-
--- FOV Slider
 AimbotGroup:AddSlider('FOVSlider', {
-    Text = 'Adjust FOV Size',
+    Text = 'FOV Size',
+    Default = 100,
     Min = 50,
     Max = 300,
-    Default = 100,
-    Tooltip = 'Adjust the size of the FOV circle',
     Callback = function(Value)
         AimbotFOV = Value
-        FOVCircle.Radius = AimbotFOV
+        BaseFOV = Value
     end
 })
 
@@ -170,7 +153,12 @@ RunService.RenderStepped:Connect(function()
         end
 
         if CurrentTarget and CurrentTarget.Character and CurrentTarget.Character:FindFirstChild(AimbotHitPart) then
+            -- Make your character look at the target
             local TargetPart = CurrentTarget.Character[AimbotHitPart]
+            local LookAtPosition = TargetPart.Position
+            LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.lookAt(LocalPlayer.Character.HumanoidRootPart.Position, LookAtPosition)
+
+            -- Aimbot logic
             local Distance = (LocalPlayer.Character.HumanoidRootPart.Position - TargetPart.Position).Magnitude
             local AdjustedPrediction = AimbotPrediction + (Distance / 1000)
 
@@ -185,40 +173,6 @@ RunService.RenderStepped:Connect(function()
             )
 
             Camera.CFrame = Camera.CFrame:Lerp(NewCFrame * CFrame.new(ShakeOffset), AimbotSmoothness)
-        end
-    end
-
-    -- --- Visuals ESP Logic ---
-    for _, Player in pairs(Players:GetPlayers()) do
-        if Player ~= LocalPlayer and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
-            local RootPart = Player.Character.HumanoidRootPart
-            local Pos, OnScreen = workspace.CurrentCamera:WorldToViewportPoint(RootPart.Position)
-            
-            if OnScreen then
-                if Library.Flags.SkeletonESP then
-                    -- Placeholder for Skeleton ESP
-                    Drawing.new("Line") -- This can be further developed to draw the actual skeleton
-                end
-
-                if Library.Flags.TracersESP then
-                    local Tracer = Drawing.new("Line")
-                    Tracer.Color = Color3.fromRGB(255, 255, 255)
-                    Tracer.From = Vector2.new(workspace.CurrentCamera.ViewportSize.X/2, workspace.CurrentCamera.ViewportSize.Y)
-                    Tracer.To = Vector2.new(Pos.X, Pos.Y)
-                    Tracer.Thickness = 1
-                    Tracer.Visible = true
-                end
-
-                if Library.Flags.BoxESP then
-                    local Box = Drawing.new("Square")
-                    Box.Position = Vector2.new(Pos.X-15, Pos.Y-15)
-                    Box.Size = Vector2.new(30, 30)
-                    Box.Color = Color3.fromRGB(255, 255, 255)
-                    Box.Thickness = 1
-                    Box.Filled = false
-                    Box.Visible = true
-                end
-            end
         end
     end
 end)
