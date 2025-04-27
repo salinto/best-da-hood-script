@@ -13,7 +13,7 @@ local Window = Library:CreateWindow({
 -- Tabs
 local Tabs = {
     Aimbot = Window:AddTab('Aimbot'),
-    Visuals = Window:AddTab('Visuals')
+    Visuals = Window:AddTab('Visuals') -- Visuals Tab
 }
 
 -- Services
@@ -36,72 +36,105 @@ local AimbotHitPart = "Head"
 local IsLocking = false
 local CurrentTarget = nil
 
--- FOV Circle Variables
-local FOVEnabled = false
-local FOVRadius = 100  -- Default FOV size
-
--- Create UI elements for FOV controls
-local VisualsTab = Tabs.Visuals
-VisualsTab:AddToggle({
-    Name = "Enable FOV Circle",
-    Default = false,
-    Callback = function(state)
-        FOVEnabled = state
-    end
-})
-
-VisualsTab:AddSlider({
-    Name = "FOV Circle Size",
-    Min = 50,
-    Max = 300,
-    Default = 100,
-    Callback = function(value)
-        FOVRadius = value
-    end
-})
-
--- Drawing FOV Circle based on toggle and size
+-- Drawing FOV
 local FOVCircle = Drawing.new("Circle")
 FOVCircle.Color = Color3.fromRGB(255, 255, 255)
 FOVCircle.Thickness = 2
 FOVCircle.Filled = false
-FOVCircle.Visible = FOVEnabled
+FOVCircle.Visible = true
 
--- Update FOV Circle position and size
-RunService.RenderStepped:Connect(function()
-    if not FOVEnabled then
-        FOVCircle.Visible = false
-        return
-    else
-        FOVCircle.Visible = true
+-- UI Setup
+local AimbotGroup = Tabs.Aimbot:AddLeftGroupbox('Main')
+
+-- Aimbot Enable
+AimbotGroup:AddToggle('AimEnabled', {
+    Text = 'Enable Aimbot',
+    Default = false,
+    Callback = function(Value)
+        AimbotEnabled = Value
     end
+})
 
-    local screenSize = workspace.CurrentCamera.ViewportSize
-    local fovSize = FOVRadius  -- FOV size is based on the slider value
+-- FOV Toggle and Slider
+AimbotGroup:AddToggle('FOVToggle', {
+    Text = 'Enable FOV Circle',
+    Default = true,
+    Callback = function(Value)
+        FOVCircle.Visible = Value
+    end
+})
 
-    FOVCircle.Position = Vector2.new(screenSize.X / 2, screenSize.Y / 2)  -- Center the circle
-    FOVCircle.Radius = fovSize  -- Set radius of circle based on FOV slider
-end)
+AimbotGroup:AddSlider('FOVSlider', {
+    Text = 'FOV Size',
+    Min = 50,
+    Max = 300,
+    Default = 100,
+    Callback = function(Value)
+        AimbotFOV = Value
+    end
+})
 
--- Aimbot Follow Logic
-RunService.RenderStepped:Connect(function()
-    if not AimbotEnabled then return end
+-- Mode Selector
+AimbotGroup:AddDropdown('ModeSelect', {
+    Values = {'Legit', 'Blatant'},
+    Default = 1,
+    Multi = false,
+    Text = 'Mode',
+    Callback = function(Value)
+        AimbotMode = Value
+        if AimbotMode == "Legit" then
+            AimbotSmoothness = 0.2
+            AimbotPrediction = 0.13
+            AimbotShake = 0.5
+        elseif AimbotMode == "Blatant" then
+            AimbotSmoothness = 1
+            AimbotPrediction = 0.165
+            AimbotShake = 0
+        end
+    end
+})
 
-    local ClosestPlayer = GetClosestPlayer()
-    if not ClosestPlayer or not ClosestPlayer.Character then return end
+-- HitPart Selector
+AimbotGroup:AddDropdown('HitPartSelect', {
+    Values = {'Head', 'HumanoidRootPart', 'UpperTorso', 'LowerTorso'},
+    Default = 1,
+    Multi = false,
+    Text = 'HitPart',
+    Callback = function(Value)
+        AimbotHitPart = Value
+    end
+})
 
-    local TargetPart = ClosestPlayer.Character:FindFirstChild(AimbotHitPart)
-    if not TargetPart then return end
+-- Keybind for Aimbot
+AimbotGroup:AddLabel('Aimlock Key'):AddKeyPicker('AimLockKey', {
+    Default = 'E',
+    Mode = 'Toggle', 
+    Text = 'Aimlock Keybind',
+    NoUI = false 
+})
 
-    local TargetPosition = TargetPart.Position
-    local Camera = workspace.CurrentCamera
-    local CurrentCFrame = Camera.CFrame
-    local TargetCFrame = CFrame.new(CurrentCFrame.Position, TargetPosition)
+-- Visuals UI
+local VisualsGroup = Tabs.Visuals:AddLeftGroupbox('ESP Features')
 
-    Camera.CFrame = Camera.CFrame:Lerp(TargetCFrame, AimbotSmoothness)
-end)
+VisualsGroup:AddToggle('SkeletonESP', {
+    Text = 'Skeleton ESP',
+    Default = false,
+    Tooltip = 'Draw skeleton on players'
+})
 
--- Functions for Getting Closest Player
+VisualsGroup:AddToggle('TracersESP', {
+    Text = 'Tracers',
+    Default = false,
+    Tooltip = 'Draw tracers from your screen to players'
+})
+
+VisualsGroup:AddToggle('BoxESP', {
+    Text = 'Box ESP',
+    Default = false,
+    Tooltip = 'Draw boxes around players'
+})
+
+-- Functions
 local function GetClosestPlayer()
     local ClosestPlayer = nil
     local ClosestDistance = math.huge
@@ -120,11 +153,84 @@ local function GetClosestPlayer()
     return ClosestPlayer
 end
 
--- Keybind Handling for Aimbot (Lock on the closest target)
+-- Main Loop
+RunService.RenderStepped:Connect(function()
+    FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y)
+    FOVCircle.Radius = AimbotFOV
+
+    -- --- Aimbot Logic ---
+    if not AimbotEnabled then
+        CurrentTarget = nil
+        return
+    end
+
+    if IsLocking then
+        if CurrentTarget == nil or not CurrentTarget.Character or not CurrentTarget.Character:FindFirstChild(AimbotHitPart) or CurrentTarget.Character.Humanoid.Health <= 0 then
+            AimbotFOV = math.min(AimbotFOV + 2, MaxFOV)
+            CurrentTarget = GetClosestPlayer()
+        else
+            AimbotFOV = math.max(AimbotFOV - 5, BaseFOV)
+        end
+
+        if CurrentTarget and CurrentTarget.Character and CurrentTarget.Character:FindFirstChild(AimbotHitPart) then
+            local TargetPart = CurrentTarget.Character[AimbotHitPart]
+            local Distance = (LocalPlayer.Character.HumanoidRootPart.Position - TargetPart.Position).Magnitude
+            local AdjustedPrediction = AimbotPrediction + (Distance / 1000)
+
+            local PredictedPosition = TargetPart.Position + (TargetPart.Velocity * AdjustedPrediction)
+            local Camera = workspace.CurrentCamera
+            local NewCFrame = CFrame.new(Camera.CFrame.Position, PredictedPosition)
+
+            local ShakeOffset = Vector3.new(
+                (math.random() - 0.5) * 2 * AimbotShake,
+                (math.random() - 0.5) * 2 * AimbotShake,
+                (math.random() - 0.5) * 2 * AimbotShake
+            )
+
+            Camera.CFrame = Camera.CFrame:Lerp(NewCFrame * CFrame.new(ShakeOffset), AimbotSmoothness)
+        end
+    end
+
+    -- --- Visuals ESP Logic ---
+    for _, Player in pairs(Players:GetPlayers()) do
+        if Player ~= LocalPlayer and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+            local RootPart = Player.Character.HumanoidRootPart
+            local Pos, OnScreen = workspace.CurrentCamera:WorldToViewportPoint(RootPart.Position)
+            
+            if OnScreen then
+                if Library.Flags.SkeletonESP then
+                    -- Placeholder for Skeleton ESP
+                    Drawing.new("Line") -- This can be further developed to draw the actual skeleton
+                end
+
+                if Library.Flags.TracersESP then
+                    local Tracer = Drawing.new("Line")
+                    Tracer.Color = Color3.fromRGB(255, 255, 255)
+                    Tracer.From = Vector2.new(workspace.CurrentCamera.ViewportSize.X/2, workspace.CurrentCamera.ViewportSize.Y)
+                    Tracer.To = Vector2.new(Pos.X, Pos.Y)
+                    Tracer.Thickness = 1
+                    Tracer.Visible = true
+                end
+
+                if Library.Flags.BoxESP then
+                    local Box = Drawing.new("Square")
+                    Box.Position = Vector2.new(Pos.X-15, Pos.Y-15)
+                    Box.Size = Vector2.new(30, 30)
+                    Box.Color = Color3.fromRGB(255, 255, 255)
+                    Box.Thickness = 1
+                    Box.Filled = false
+                    Box.Visible = true
+                end
+            end
+        end
+    end
+end)
+
+-- Keybind Handling for Aimbot
 UserInputService.InputBegan:Connect(function(input, processed)
     if processed then return end
-    if input.KeyCode == Enum.KeyCode.E then
-        AimbotEnabled = not AimbotEnabled
+    if input.KeyCode == Library.Flags.AimLockKey then
+        IsLocking = not IsLocking
     end
 end)
 
