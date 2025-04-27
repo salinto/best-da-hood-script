@@ -35,7 +35,7 @@ local AimbotShake = 0.5
 local AimbotHitPart = "Head"
 local IsLocking = false
 local CurrentTarget = nil
-local FOVEnabled = false -- Variable to enable/disable FOV circle
+local FOVEnabled = false -- FOV checkbox
 
 -- Drawing FOV Circle
 local FOVCircle = Drawing.new("Circle")
