@@ -1,9 +1,9 @@
--- Load libraries
+-- Load Linoria
 local Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Library.lua'))()
 local ThemeManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/addons/ThemeManager.lua'))()
 local SaveManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/addons/SaveManager.lua'))()
 
--- Window Setup
+-- Window
 local Window = Library:CreateWindow({
     Title = 'GOD Aimbot | Linoria UI',
     Center = true,
@@ -17,33 +17,32 @@ local Tabs = {
 -- Services
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
--- Aimbot Variables
+-- Variables
 local AimbotEnabled = false
-local AimbotSmoothness = 0.1
-local AimbotPrediction = 0.165
-local AimbotHitPart = "Head"
-local AimbotShake = 0
+local AimbotMode = "Legit"
 local AimbotFOV = 100
-local AimbotLockKey = Enum.KeyCode.E
-local AimbotMode = "Legit" -- "Legit" or "Blatant"
-local IsLocking = false
-local CurrentTarget = nil
 local BaseFOV = 100
 local MaxFOV = 300
+local AimbotSmoothness = 0.2
+local AimbotPrediction = 0.13
+local AimbotShake = 0.5
+local AimbotHitPart = "Head"
+local IsLocking = false
+local CurrentTarget = nil
 
--- Draw FOV Circle
+-- Drawing FOV
 local FOVCircle = Drawing.new("Circle")
 FOVCircle.Color = Color3.fromRGB(255, 255, 255)
 FOVCircle.Thickness = 2
-FOVCircle.Radius = AimbotFOV
 FOVCircle.Filled = false
 FOVCircle.Visible = true
 
--- UI Elements
-local AimbotGroup = Tabs.Aimbot:AddLeftGroupbox('Main Settings')
+-- UI
+local AimbotGroup = Tabs.Aimbot:AddLeftGroupbox('Main')
 
 AimbotGroup:AddToggle('AimEnabled', {
     Text = 'Enable Aimbot',
@@ -54,7 +53,7 @@ AimbotGroup:AddToggle('AimEnabled', {
 })
 
 AimbotGroup:AddSlider('FOVSize', {
-    Text = 'Base FOV Radius',
+    Text = 'FOV Size',
     Default = 100,
     Min = 10,
     Max = 500,
@@ -69,12 +68,12 @@ AimbotGroup:AddDropdown('ModeSelect', {
     Values = {'Legit', 'Blatant'},
     Default = 1,
     Multi = false,
-    Text = 'Aimbot Mode',
+    Text = 'Mode',
     Callback = function(Value)
         AimbotMode = Value
         if AimbotMode == "Legit" then
-            AimbotSmoothness = 0.25
-            AimbotPrediction = 0.12
+            AimbotSmoothness = 0.2
+            AimbotPrediction = 0.13
             AimbotShake = 0.5
         elseif AimbotMode == "Blatant" then
             AimbotSmoothness = 1
@@ -84,7 +83,7 @@ AimbotGroup:AddDropdown('ModeSelect', {
     end
 })
 
-AimbotGroup:AddDropdown('HitPart', {
+AimbotGroup:AddDropdown('HitPartSelect', {
     Values = {'Head', 'HumanoidRootPart', 'UpperTorso', 'LowerTorso'},
     Default = 1,
     Multi = false,
@@ -94,20 +93,14 @@ AimbotGroup:AddDropdown('HitPart', {
     end
 })
 
-AimbotGroup:AddLabel('Aimbot Keybind')
-
-AimbotGroup:AddKeyPicker('AimLockKey', {
+AimbotGroup:AddLabel('Aimlock Key'):AddKeyPicker('AimLockKey', {
     Default = 'E',
-    SyncToggleState = false,
-    Mode = 'Toggle',
-    Text = 'Lock Target Key',
-    NoUI = false,
-    Callback = function(Value)
-        AimbotLockKey = Value
-    end
+    Mode = 'Toggle', -- or 'Hold'
+    Text = 'Aimlock Key',
+    NoUI = false -- <-- SHOWS THE "..." BUTTON!!
 })
 
--- Aimbot Functions
+-- Functions
 local function GetClosestPlayer()
     local ClosestPlayer = nil
     local ClosestDistance = math.huge
@@ -126,7 +119,7 @@ local function GetClosestPlayer()
     return ClosestPlayer
 end
 
--- Main Aimbot Loop
+-- Main Loop
 RunService.RenderStepped:Connect(function()
     FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y)
     FOVCircle.Radius = AimbotFOV
@@ -138,11 +131,10 @@ RunService.RenderStepped:Connect(function()
 
     if IsLocking then
         if CurrentTarget == nil or not CurrentTarget.Character or not CurrentTarget.Character:FindFirstChild(AimbotHitPart) or CurrentTarget.Character.Humanoid.Health <= 0 then
-            -- Auto-find new target
-            AimbotFOV = math.min(AimbotFOV + 2, MaxFOV) -- expand slowly
+            -- Search new target
+            AimbotFOV = math.min(AimbotFOV + 2, MaxFOV)
             CurrentTarget = GetClosestPlayer()
         else
-            -- Reset FOV back to base when we find
             AimbotFOV = math.max(AimbotFOV - 5, BaseFOV)
         end
 
@@ -155,7 +147,6 @@ RunService.RenderStepped:Connect(function()
             local Camera = workspace.CurrentCamera
             local NewCFrame = CFrame.new(Camera.CFrame.Position, PredictedPosition)
 
-            -- Shake for Legit mode
             local ShakeOffset = Vector3.new(
                 (math.random() - 0.5) * 2 * AimbotShake,
                 (math.random() - 0.5) * 2 * AimbotShake,
@@ -165,22 +156,21 @@ RunService.RenderStepped:Connect(function()
             Camera.CFrame = Camera.CFrame:Lerp(NewCFrame * CFrame.new(ShakeOffset), AimbotSmoothness)
         end
     else
-        CurrentTarget = nil -- If we are not locking, reset target
+        CurrentTarget = nil
     end
 end)
 
--- Lock Keybind
-game:GetService("UserInputService").InputBegan:Connect(function(input, processed)
+-- Keybind Handling
+UserInputService.InputBegan:Connect(function(input, processed)
     if processed then return end
-    if input.KeyCode == AimbotLockKey then
+    if input.KeyCode == Library.Flags.AimLockKey then
         IsLocking = not IsLocking
     end
 end)
 
--- Theme & Save
+-- Theme/Save
 ThemeManager:SetLibrary(Library)
 SaveManager:SetLibrary(Library)
 SaveManager:IgnoreThemeSettings()
-
 SaveManager:SetFolder('GOD_Aimbot')
 SaveManager:BuildConfigSection(Tabs.Aimbot)
