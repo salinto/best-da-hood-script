@@ -55,20 +55,16 @@ AimbotGroup:AddToggle('AimEnabled', {
     end
 })
 
--- FOV Size Input Box
-AimbotGroup:AddInput('FOVInput', {
-    Default = '100',
-    Numeric = true,
-    Finished = true,
+-- FOV Slider
+AimbotGroup:AddSlider('FOVSlider', {
     Text = 'FOV Size',
-    Tooltip = 'Type your FOV manually',
-    Placeholder = '100',
+    Min = 50,
+    Max = 300,
+    Default = 100,
+    Tooltip = 'Adjust your FOV size',
     Callback = function(Value)
-        local Number = tonumber(Value)
-        if Number then
-            BaseFOV = Number
-            AimbotFOV = Number
-        end
+        AimbotFOV = Value
+        FOVCircle.Radius = AimbotFOV
     end
 })
 
