@@ -44,6 +44,7 @@ FOVCircle.Visible = true
 -- UI
 local AimbotGroup = Tabs.Aimbot:AddLeftGroupbox('Main')
 
+-- Aimbot Enable
 AimbotGroup:AddToggle('AimEnabled', {
     Text = 'Enable Aimbot',
     Default = false,
@@ -52,18 +53,24 @@ AimbotGroup:AddToggle('AimEnabled', {
     end
 })
 
-AimbotGroup:AddSlider('FOVSize', {
+-- FOV Size Box
+AimbotGroup:AddInput('FOVInput', {
+    Default = '100',
+    Numeric = true,
+    Finished = true,
     Text = 'FOV Size',
-    Default = 100,
-    Min = 10,
-    Max = 500,
-    Rounding = 0,
+    Tooltip = 'Type your FOV manually',
+    Placeholder = '100',
     Callback = function(Value)
-        BaseFOV = Value
-        AimbotFOV = Value
+        local Number = tonumber(Value)
+        if Number then
+            BaseFOV = Number
+            AimbotFOV = Number
+        end
     end
 })
 
+-- Mode Selector
 AimbotGroup:AddDropdown('ModeSelect', {
     Values = {'Legit', 'Blatant'},
     Default = 1,
@@ -83,6 +90,7 @@ AimbotGroup:AddDropdown('ModeSelect', {
     end
 })
 
+-- HitPart Selector
 AimbotGroup:AddDropdown('HitPartSelect', {
     Values = {'Head', 'HumanoidRootPart', 'UpperTorso', 'LowerTorso'},
     Default = 1,
@@ -93,11 +101,12 @@ AimbotGroup:AddDropdown('HitPartSelect', {
     end
 })
 
+-- Proper Keybind
 AimbotGroup:AddLabel('Aimlock Key'):AddKeyPicker('AimLockKey', {
     Default = 'E',
     Mode = 'Toggle', -- or 'Hold'
-    Text = 'Aimlock Key',
-    NoUI = false -- <-- SHOWS THE "..." BUTTON!!
+    Text = 'Aimlock Keybind',
+    NoUI = false -- THIS makes the "..." button visible!
 })
 
 -- Functions
@@ -160,7 +169,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Keybind Handling
+-- Keybind Handler
 UserInputService.InputBegan:Connect(function(input, processed)
     if processed then return end
     if input.KeyCode == Library.Flags.AimLockKey then
@@ -168,7 +177,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
     end
 end)
 
--- Theme/Save
+-- Theme / Save
 ThemeManager:SetLibrary(Library)
 SaveManager:SetLibrary(Library)
 SaveManager:IgnoreThemeSettings()
