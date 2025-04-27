@@ -36,7 +36,7 @@ local AimbotHitPart = "Head"
 local IsLocking = false
 local CurrentTarget = nil
 
--- Drawing FOV
+-- Drawing FOV Circle
 local FOVCircle = Drawing.new("Circle")
 FOVCircle.Color = Color3.fromRGB(255, 255, 255)
 FOVCircle.Thickness = 2
@@ -55,22 +55,20 @@ AimbotGroup:AddToggle('AimEnabled', {
     end
 })
 
--- FOV Toggle and Slider
-AimbotGroup:AddToggle('FOVToggle', {
-    Text = 'Enable FOV Circle',
-    Default = true,
-    Callback = function(Value)
-        FOVCircle.Visible = Value
-    end
-})
-
-AimbotGroup:AddSlider('FOVSlider', {
+-- FOV Size Input Box
+AimbotGroup:AddInput('FOVInput', {
+    Default = '100',
+    Numeric = true,
+    Finished = true,
     Text = 'FOV Size',
-    Min = 50,
-    Max = 300,
-    Default = 100,
+    Tooltip = 'Type your FOV manually',
+    Placeholder = '100',
     Callback = function(Value)
-        AimbotFOV = Value
+        local Number = tonumber(Value)
+        if Number then
+            BaseFOV = Number
+            AimbotFOV = Number
+        end
     end
 })
 
@@ -113,27 +111,6 @@ AimbotGroup:AddLabel('Aimlock Key'):AddKeyPicker('AimLockKey', {
     NoUI = false 
 })
 
--- Visuals UI
-local VisualsGroup = Tabs.Visuals:AddLeftGroupbox('ESP Features')
-
-VisualsGroup:AddToggle('SkeletonESP', {
-    Text = 'Skeleton ESP',
-    Default = false,
-    Tooltip = 'Draw skeleton on players'
-})
-
-VisualsGroup:AddToggle('TracersESP', {
-    Text = 'Tracers',
-    Default = false,
-    Tooltip = 'Draw tracers from your screen to players'
-})
-
-VisualsGroup:AddToggle('BoxESP', {
-    Text = 'Box ESP',
-    Default = false,
-    Tooltip = 'Draw boxes around players'
-})
-
 -- Functions
 local function GetClosestPlayer()
     local ClosestPlayer = nil
@@ -155,6 +132,7 @@ end
 
 -- Main Loop
 RunService.RenderStepped:Connect(function()
+    -- Update FOV Circle Position and Radius
     FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y)
     FOVCircle.Radius = AimbotFOV
 
@@ -166,10 +144,7 @@ RunService.RenderStepped:Connect(function()
 
     if IsLocking then
         if CurrentTarget == nil or not CurrentTarget.Character or not CurrentTarget.Character:FindFirstChild(AimbotHitPart) or CurrentTarget.Character.Humanoid.Health <= 0 then
-            AimbotFOV = math.min(AimbotFOV + 2, MaxFOV)
             CurrentTarget = GetClosestPlayer()
-        else
-            AimbotFOV = math.max(AimbotFOV - 5, BaseFOV)
         end
 
         if CurrentTarget and CurrentTarget.Character and CurrentTarget.Character:FindFirstChild(AimbotHitPart) then
