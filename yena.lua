@@ -153,12 +153,7 @@ RunService.RenderStepped:Connect(function()
         end
 
         if CurrentTarget and CurrentTarget.Character and CurrentTarget.Character:FindFirstChild(AimbotHitPart) then
-            -- Make your character look at the target
             local TargetPart = CurrentTarget.Character[AimbotHitPart]
-            local LookAtPosition = TargetPart.Position
-            LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.lookAt(LocalPlayer.Character.HumanoidRootPart.Position, LookAtPosition)
-
-            -- Aimbot logic
             local Distance = (LocalPlayer.Character.HumanoidRootPart.Position - TargetPart.Position).Magnitude
             local AdjustedPrediction = AimbotPrediction + (Distance / 1000)
 
