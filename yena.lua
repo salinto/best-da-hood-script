@@ -36,20 +36,69 @@ local AimbotHitPart = "Head"
 local IsLocking = false
 local CurrentTarget = nil
 
--- Drawing FOV Box (Static)
-local FOVBox = Drawing.new("Square")
-FOVBox.Color = Color3.fromRGB(255, 255, 255)
-FOVBox.Thickness = 2
-FOVBox.Filled = false
-FOVBox.Visible = true
+-- FOV Circle Variables
+local FOVEnabled = false
+local FOVRadius = 100  -- Default FOV size
 
--- Update FOV Box position and size
+-- Create UI elements for FOV controls
+local VisualsTab = Tabs.Visuals
+VisualsTab:AddToggle({
+    Name = "Enable FOV Circle",
+    Default = false,
+    Callback = function(state)
+        FOVEnabled = state
+    end
+})
+
+VisualsTab:AddSlider({
+    Name = "FOV Circle Size",
+    Min = 50,
+    Max = 300,
+    Default = 100,
+    Callback = function(value)
+        FOVRadius = value
+    end
+})
+
+-- Drawing FOV Circle based on toggle and size
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Color = Color3.fromRGB(255, 255, 255)
+FOVCircle.Thickness = 2
+FOVCircle.Filled = false
+FOVCircle.Visible = FOVEnabled
+
+-- Update FOV Circle position and size
 RunService.RenderStepped:Connect(function()
-    local screenSize = workspace.CurrentCamera.ViewportSize
-    local fovSize = AimbotFOV * 2
+    if not FOVEnabled then
+        FOVCircle.Visible = false
+        return
+    else
+        FOVCircle.Visible = true
+    end
 
-    FOVBox.Position = Vector2.new((screenSize.X - fovSize) / 2, (screenSize.Y - fovSize) / 2)
-    FOVBox.Size = Vector2.new(fovSize, fovSize)
+    local screenSize = workspace.CurrentCamera.ViewportSize
+    local fovSize = FOVRadius  -- FOV size is based on the slider value
+
+    FOVCircle.Position = Vector2.new(screenSize.X / 2, screenSize.Y / 2)  -- Center the circle
+    FOVCircle.Radius = fovSize  -- Set radius of circle based on FOV slider
+end)
+
+-- Aimbot Follow Logic
+RunService.RenderStepped:Connect(function()
+    if not AimbotEnabled then return end
+
+    local ClosestPlayer = GetClosestPlayer()
+    if not ClosestPlayer or not ClosestPlayer.Character then return end
+
+    local TargetPart = ClosestPlayer.Character:FindFirstChild(AimbotHitPart)
+    if not TargetPart then return end
+
+    local TargetPosition = TargetPart.Position
+    local Camera = workspace.CurrentCamera
+    local CurrentCFrame = Camera.CFrame
+    local TargetCFrame = CFrame.new(CurrentCFrame.Position, TargetPosition)
+
+    Camera.CFrame = Camera.CFrame:Lerp(TargetCFrame, AimbotSmoothness)
 end)
 
 -- Functions for Getting Closest Player
@@ -71,25 +120,7 @@ local function GetClosestPlayer()
     return ClosestPlayer
 end
 
--- Aimbot Logic: Follow target without manually moving camera
-RunService.RenderStepped:Connect(function()
-    if not AimbotEnabled then return end
-
-    local ClosestPlayer = GetClosestPlayer()
-    if not ClosestPlayer or not ClosestPlayer.Character then return end
-
-    local TargetPart = ClosestPlayer.Character:FindFirstChild(AimbotHitPart)
-    if not TargetPart then return end
-
-    local TargetPosition = TargetPart.Position
-    local Camera = workspace.CurrentCamera
-    local CurrentCFrame = Camera.CFrame
-    local TargetCFrame = CFrame.new(CurrentCFrame.Position, TargetPosition)
-
-    Camera.CFrame = Camera.CFrame:Lerp(TargetCFrame, AimbotSmoothness)
-end)
-
--- Keybind Handling for Aimbot
+-- Keybind Handling for Aimbot (Lock on the closest target)
 UserInputService.InputBegan:Connect(function(input, processed)
     if processed then return end
     if input.KeyCode == Enum.KeyCode.E then
