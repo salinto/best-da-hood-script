@@ -5,7 +5,7 @@ local SaveManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/v
 
 -- Window Setup
 local Window = Library:CreateWindow({
-    Title = 'Aimbot Script | Linoria UI',
+    Title = 'GOD Aimbot | Linoria UI',
     Center = true,
     AutoShow = true,
 })
@@ -30,6 +30,9 @@ local AimbotFOV = 100
 local AimbotLockKey = Enum.KeyCode.E
 local AimbotMode = "Legit" -- "Legit" or "Blatant"
 local IsLocking = false
+local CurrentTarget = nil
+local BaseFOV = 100
+local MaxFOV = 300
 
 -- Draw FOV Circle
 local FOVCircle = Drawing.new("Circle")
@@ -51,14 +54,14 @@ AimbotGroup:AddToggle('AimEnabled', {
 })
 
 AimbotGroup:AddSlider('FOVSize', {
-    Text = 'FOV Radius',
+    Text = 'Base FOV Radius',
     Default = 100,
     Min = 10,
     Max = 500,
     Rounding = 0,
     Callback = function(Value)
+        BaseFOV = Value
         AimbotFOV = Value
-        FOVCircle.Radius = Value
     end
 })
 
@@ -70,8 +73,8 @@ AimbotGroup:AddDropdown('ModeSelect', {
     Callback = function(Value)
         AimbotMode = Value
         if AimbotMode == "Legit" then
-            AimbotSmoothness = 0.2
-            AimbotPrediction = 0.13
+            AimbotSmoothness = 0.25
+            AimbotPrediction = 0.12
             AimbotShake = 0.5
         elseif AimbotMode == "Blatant" then
             AimbotSmoothness = 1
@@ -96,7 +99,7 @@ AimbotGroup:AddLabel('Aimbot Keybind')
 AimbotGroup:AddKeyPicker('AimLockKey', {
     Default = 'E',
     SyncToggleState = false,
-    Mode = 'Toggle', -- Toggle means press once = ON, press again = OFF
+    Mode = 'Toggle',
     Text = 'Lock Target Key',
     NoUI = false,
     Callback = function(Value)
@@ -126,16 +129,33 @@ end
 -- Main Aimbot Loop
 RunService.RenderStepped:Connect(function()
     FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y)
-    
-    if AimbotEnabled and IsLocking then
-        local Target = GetClosestPlayer()
-        if Target and Target.Character and Target.Character:FindFirstChild(AimbotHitPart) then
-            local TargetPart = Target.Character[AimbotHitPart]
-            local PredictedPosition = TargetPart.Position + (TargetPart.Velocity * AimbotPrediction)
+    FOVCircle.Radius = AimbotFOV
+
+    if not AimbotEnabled then
+        CurrentTarget = nil
+        return
+    end
+
+    if IsLocking then
+        if CurrentTarget == nil or not CurrentTarget.Character or not CurrentTarget.Character:FindFirstChild(AimbotHitPart) or CurrentTarget.Character.Humanoid.Health <= 0 then
+            -- Auto-find new target
+            AimbotFOV = math.min(AimbotFOV + 2, MaxFOV) -- expand slowly
+            CurrentTarget = GetClosestPlayer()
+        else
+            -- Reset FOV back to base when we find
+            AimbotFOV = math.max(AimbotFOV - 5, BaseFOV)
+        end
+
+        if CurrentTarget and CurrentTarget.Character and CurrentTarget.Character:FindFirstChild(AimbotHitPart) then
+            local TargetPart = CurrentTarget.Character[AimbotHitPart]
+            local Distance = (LocalPlayer.Character.HumanoidRootPart.Position - TargetPart.Position).Magnitude
+            local AdjustedPrediction = AimbotPrediction + (Distance / 1000)
+
+            local PredictedPosition = TargetPart.Position + (TargetPart.Velocity * AdjustedPrediction)
             local Camera = workspace.CurrentCamera
             local NewCFrame = CFrame.new(Camera.CFrame.Position, PredictedPosition)
 
-            -- Optional Shake for Legit
+            -- Shake for Legit mode
             local ShakeOffset = Vector3.new(
                 (math.random() - 0.5) * 2 * AimbotShake,
                 (math.random() - 0.5) * 2 * AimbotShake,
@@ -144,6 +164,8 @@ RunService.RenderStepped:Connect(function()
 
             Camera.CFrame = Camera.CFrame:Lerp(NewCFrame * CFrame.new(ShakeOffset), AimbotSmoothness)
         end
+    else
+        CurrentTarget = nil -- If we are not locking, reset target
     end
 end)
 
@@ -160,5 +182,5 @@ ThemeManager:SetLibrary(Library)
 SaveManager:SetLibrary(Library)
 SaveManager:IgnoreThemeSettings()
 
-SaveManager:SetFolder('MyAimbot')
+SaveManager:SetFolder('GOD_Aimbot')
 SaveManager:BuildConfigSection(Tabs.Aimbot)
