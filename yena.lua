@@ -191,7 +191,7 @@ RunService.RenderStepped:Connect(function()
         local tool = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Tool")
         if tool then
             tool:Activate()
-            task.wait(0.05) -- faster firing rate
+            task.wait(0.01) -- faster firing rate
         end
     end
 end)
