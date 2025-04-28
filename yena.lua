@@ -16,8 +16,7 @@ local Window = Library:CreateWindow({
 -- Tabs
 local Tabs = {
     Aimbot = Window:AddTab('Aimbot'),
-    Visuals = Window:AddTab('Visuals'),
-    Movement = Window:AddTab('Movement')
+    Visuals = Window:AddTab('Visuals')
 }
 
 -- Services
@@ -36,39 +35,23 @@ local RapidFire, RainbowESPEnabled = false, false
 local SpeedWalkEnabled, SuperJumpEnabled = false, false
 local WalkSpeedAmount, JumpPowerAmount = 50, 100
 local TargetPlayer = nil
-local SilentAimEnabled = false
 
--- FOV Circle (Fixed Position)
+-- FOV Circle
 local FOVCircle = Drawing.new("Circle")
 FOVCircle.Color = Color3.fromRGB(255, 255, 255)
 FOVCircle.Thickness = 2
 FOVCircle.Filled = false
-FOVCircle.Visible = true
+FOVCircle.Visible = false
 
 -- Aimbot Tab Setup
 local AimbotGroup = Tabs.Aimbot:AddLeftGroupbox('Main')
 
--- Enable Aimbot Toggle
 AimbotGroup:AddToggle('AimEnabled', {
     Text = 'Enable Aimbot',
     Default = false,
-    Callback = function(Value)
-        AimbotEnabled = Value
-    end
+    Callback = function(Value) AimbotEnabled = Value end
 })
 
--- Aimbot Keybind (placed right under Enable Aimbot)
-AimbotGroup:AddLabel('Aimlock Keybind'):AddKeyPicker('AimLockKey', {
-    Default = 'E',
-    Mode = 'Toggle',
-    Text = 'Aimlock Key',
-    NoUI = false,
-    Callback = function(Key)
-        AimbotKey = Enum.KeyCode[Key] or Enum.KeyCode.E
-    end
-})
-
--- FOV Slider
 AimbotGroup:AddInput('FOVInput', {
     Default = '100',
     Numeric = true,
@@ -80,7 +63,6 @@ AimbotGroup:AddInput('FOVInput', {
     end
 })
 
--- Mode Dropdown
 AimbotGroup:AddDropdown('ModeSelect', {
     Values = {'Legit', 'Blatant'},
     Default = 1,
@@ -96,7 +78,6 @@ AimbotGroup:AddDropdown('ModeSelect', {
     end
 })
 
--- Hit Part Dropdown
 AimbotGroup:AddDropdown('HitPartSelect', {
     Values = {'Head', 'HumanoidRootPart', 'UpperTorso', 'LowerTorso'},
     Default = 1,
@@ -104,33 +85,29 @@ AimbotGroup:AddDropdown('HitPartSelect', {
     Callback = function(Value) AimbotHitPart = Value end
 })
 
--- Rapid Fire Toggle
+AimbotGroup:AddLabel('Aimlock Keybind'):AddKeyPicker('AimLockKey', {
+    Default = 'E',
+    Mode = 'Toggle',
+    Text = 'Aimlock Key',
+    NoUI = false,
+    Callback = function(Key)
+        AimbotKey = Enum.KeyCode[Key] or Enum.KeyCode.E
+    end
+})
+
 AimbotGroup:AddToggle('RapidFire', {
     Text = 'Enable Rapid Fire',
     Default = false,
     Callback = function(Value) RapidFire = Value end
 })
 
--- Silent Aim Toggle
-AimbotGroup:AddToggle('SilentAim', {
-    Text = 'Enable Silent Aim',
-    Default = false,
-    Callback = function(Value) SilentAimEnabled = Value end
-})
-
 -- Visuals Setup
 local ESPGroup = Tabs.Visuals:AddLeftGroupbox('ESP Features')
 
--- Box ESP Toggle
 ESPGroup:AddToggle('BoxESP', { Text = 'Box ESP', Default = false })
-
--- Skeleton ESP Toggle
 ESPGroup:AddToggle('SkeletonESP', { Text = 'Skeleton ESP', Default = false })
-
--- Tracers ESP Toggle
 ESPGroup:AddToggle('TracersESP', { Text = 'Tracers ESP', Default = false })
 
--- Rainbow ESP Toggle
 local RainbowESPGroup = Tabs.Visuals:AddRightGroupbox('Rainbow ESP')
 
 RainbowESPGroup:AddToggle('RainbowESP', {
@@ -139,39 +116,42 @@ RainbowESPGroup:AddToggle('RainbowESP', {
     Callback = function(Value) RainbowESPEnabled = Value end
 })
 
--- Movement Cheats Setup
-local MovementGroup = Tabs.Movement:AddLeftGroupbox('Movement Cheats')
+local MovementGroup = Tabs.Visuals:AddRightGroupbox('Movement Cheats')
 
--- Walk Speed Slider
-MovementGroup:AddSlider('WalkSpeedSlider', {
-    Text = 'Walk Speed',
-    Default = 50,
-    Min = 16,
-    Max = 200,
-    Callback = function(Value) WalkSpeedAmount = Value end
-})
-
--- Jump Power Slider
-MovementGroup:AddSlider('JumpPowerSlider', {
-    Text = 'Jump Power',
-    Default = 50,
-    Min = 50,
-    Max = 200,
-    Callback = function(Value) JumpPowerAmount = Value end
-})
-
--- Speed Walk Toggle
 MovementGroup:AddToggle('SpeedWalk', {
     Text = 'Speed Walk',
     Default = false,
     Callback = function(Value) SpeedWalkEnabled = Value end
 })
 
--- Super Jump Toggle
 MovementGroup:AddToggle('SuperJump', {
     Text = 'Super Jump',
     Default = false,
     Callback = function(Value) SuperJumpEnabled = Value end
+})
+
+-- Adding FOV Toggle and Slider to Visuals Tab
+local VisualsGroup = Tabs.Visuals:AddLeftGroupbox("FOV Settings")
+
+-- FOV Toggle
+VisualsGroup:AddToggle("FOVToggle", {
+    Text = "Enable FOV Circle",
+    Default = false,
+    Callback = function(Value)
+        FOVCircle.Visible = Value
+    end
+})
+
+-- FOV Slider
+VisualsGroup:AddSlider("FOVSlider", {
+    Text = "FOV Size",
+    Default = 100,
+    Min = 50,
+    Max = 500,
+    Rounding = 1,
+    Callback = function(Value)
+        AimbotFOV = Value  -- Update the FOV size
+    end
 })
 
 -- Helper Functions
@@ -200,9 +180,12 @@ end
 
 -- Main RenderStepped
 RunService.RenderStepped:Connect(function()
-    -- FOV Update (Correct position and following mouse)
-    FOVCircle.Position = Vector2.new(Mouse.X - AimbotFOV / 2, Mouse.Y - AimbotFOV / 2)  -- Center FOV around cursor
-    FOVCircle.Radius = AimbotFOV
+    -- FOV Update
+    if FOVCircle.Visible then
+        local mousePos = UserInputService:GetMouseLocation()
+        FOVCircle.Position = Vector2.new(mousePos.X, mousePos.Y)
+        FOVCircle.Radius = AimbotFOV
+    end
 
     -- Movement Cheats
     if Character and Character:FindFirstChild("Humanoid") then
@@ -227,21 +210,6 @@ RunService.RenderStepped:Connect(function()
             local Camera = workspace.CurrentCamera
             local NewCFrame = CFrame.new(Camera.CFrame.Position, PredictedPosition)
             Camera.CFrame = Camera.CFrame:Lerp(NewCFrame, AimbotSmoothness)
-        end
-    end
-
-    -- Silent Aim
-    if SilentAimEnabled and AimbotEnabled and TargetPlayer then
-        local TargetPart = TargetPlayer.Character and TargetPlayer.Character:FindFirstChild(AimbotHitPart)
-        if TargetPart then
-            local PredictedPosition = TargetPart.Position + (TargetPart.Velocity * AimbotPrediction)
-            local Camera = workspace.CurrentCamera
-            local Direction = (PredictedPosition - Camera.CFrame.Position).unit
-            local Ray = Ray.new(Camera.CFrame.Position, Direction * 999)
-            local Hit, HitPosition = workspace:FindPartOnRay(Ray, LocalPlayer.Character)
-            if Hit then
-                Mouse.Hit = CFrame.new(HitPosition)
-            end
         end
     end
 
@@ -312,12 +280,4 @@ end)
 -- Input Handling
 UserInputService.InputBegan:Connect(function(Input, Processed)
     if Processed then return end
-    if Input.KeyCode == AimbotKey then
-        if AimbotEnabled then
-            IsLocking = not IsLocking
-            TargetPlayer = IsLocking and GetClosestPlayer() or nil
-        end
-    end
-end)
-
-print("✅ Script Loaded Successfully!")
+    if Input.KeyCode == Aimbot
