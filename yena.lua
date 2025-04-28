@@ -35,6 +35,7 @@ local RapidFire, RainbowESPEnabled = false, false
 local SpeedWalkEnabled, SuperJumpEnabled = false, false
 local WalkSpeedAmount, JumpPowerAmount = 50, 100
 local TargetPlayer = nil
+local SilentAimEnabled = false -- Silent aim variable
 
 -- FOV Circle
 local FOVCircle = Drawing.new("Circle")
@@ -99,6 +100,12 @@ AimbotGroup:AddToggle('RapidFire', {
     Text = 'Enable Rapid Fire',
     Default = false,
     Callback = function(Value) RapidFire = Value end
+})
+
+AimbotGroup:AddToggle('SilentAim', {  -- Added Silent Aim Toggle
+    Text = 'Enable Silent Aim',
+    Default = false,
+    Callback = function(Value) SilentAimEnabled = Value end
 })
 
 -- Visuals Setup
@@ -182,7 +189,11 @@ RunService.RenderStepped:Connect(function()
             local PredictedPosition = TargetPart.Position + (TargetPart.Velocity * AimbotPrediction)
             local Camera = workspace.CurrentCamera
             local NewCFrame = CFrame.new(Camera.CFrame.Position, PredictedPosition)
-            Camera.CFrame = Camera.CFrame:Lerp(NewCFrame, AimbotSmoothness)
+            if SilentAimEnabled then  -- Silent Aim logic
+                Camera.CFrame = CFrame.new(Camera.CFrame.Position, TargetPart.Position)
+            else
+                Camera.CFrame = Camera.CFrame:Lerp(NewCFrame, AimbotSmoothness)
+            end
         end
     end
 
