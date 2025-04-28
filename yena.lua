@@ -16,7 +16,8 @@ local Window = Library:CreateWindow({
 -- Tabs
 local Tabs = {
     Aimbot = Window:AddTab('Aimbot'),
-    Visuals = Window:AddTab('Visuals')
+    Visuals = Window:AddTab('Visuals'),
+    Movement = Window:AddTab('Movement') -- Movement Tab
 }
 
 -- Services
@@ -120,10 +121,16 @@ AimbotGroup:AddToggle('SilentAim', {
 -- Visuals Setup
 local ESPGroup = Tabs.Visuals:AddLeftGroupbox('ESP Features')
 
+-- Box ESP Toggle
 ESPGroup:AddToggle('BoxESP', { Text = 'Box ESP', Default = false })
+
+-- Skeleton ESP Toggle
 ESPGroup:AddToggle('SkeletonESP', { Text = 'Skeleton ESP', Default = false })
+
+-- Tracers ESP Toggle
 ESPGroup:AddToggle('TracersESP', { Text = 'Tracers ESP', Default = false })
 
+-- Rainbow ESP Toggle
 local RainbowESPGroup = Tabs.Visuals:AddRightGroupbox('Rainbow ESP')
 
 RainbowESPGroup:AddToggle('RainbowESP', {
@@ -132,9 +139,10 @@ RainbowESPGroup:AddToggle('RainbowESP', {
     Callback = function(Value) RainbowESPEnabled = Value end
 })
 
--- Movement Cheats
-local MovementGroup = Tabs.Visuals:AddRightGroupbox('Movement Cheats')
+-- Movement Cheats Setup
+local MovementGroup = Tabs.Movement:AddLeftGroupbox('Movement Cheats')
 
+-- Walk Speed Slider
 MovementGroup:AddSlider('WalkSpeedSlider', {
     Text = 'Walk Speed',
     Default = 50,
@@ -143,6 +151,7 @@ MovementGroup:AddSlider('WalkSpeedSlider', {
     Callback = function(Value) WalkSpeedAmount = Value end
 })
 
+-- Jump Power Slider
 MovementGroup:AddSlider('JumpPowerSlider', {
     Text = 'Jump Power',
     Default = 50,
@@ -151,12 +160,14 @@ MovementGroup:AddSlider('JumpPowerSlider', {
     Callback = function(Value) JumpPowerAmount = Value end
 })
 
+-- Speed Walk Toggle
 MovementGroup:AddToggle('SpeedWalk', {
     Text = 'Speed Walk',
     Default = false,
     Callback = function(Value) SpeedWalkEnabled = Value end
 })
 
+-- Super Jump Toggle
 MovementGroup:AddToggle('SuperJump', {
     Text = 'Super Jump',
     Default = false,
