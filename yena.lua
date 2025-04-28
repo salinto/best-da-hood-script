@@ -35,7 +35,7 @@ local RapidFire, RainbowESPEnabled = false, false
 local SpeedWalkEnabled, SuperJumpEnabled = false, false
 local WalkSpeedAmount, JumpPowerAmount = 50, 100
 local TargetPlayer = nil
-local SilentAimEnabled = false -- Silent aim variable
+local SilentAimEnabled = false
 
 -- FOV Circle
 local FOVCircle = Drawing.new("Circle")
@@ -102,7 +102,7 @@ AimbotGroup:AddToggle('RapidFire', {
     Callback = function(Value) RapidFire = Value end
 })
 
-AimbotGroup:AddToggle('SilentAim', {  -- Added Silent Aim Toggle
+AimbotGroup:AddToggle('SilentAim', {
     Text = 'Enable Silent Aim',
     Default = false,
     Callback = function(Value) SilentAimEnabled = Value end
@@ -123,7 +123,24 @@ RainbowESPGroup:AddToggle('RainbowESP', {
     Callback = function(Value) RainbowESPEnabled = Value end
 })
 
+-- Movement Cheats
 local MovementGroup = Tabs.Visuals:AddRightGroupbox('Movement Cheats')
+
+MovementGroup:AddSlider('WalkSpeedSlider', {
+    Text = 'Walk Speed',
+    Default = 50,
+    Min = 16,
+    Max = 200,
+    Callback = function(Value) WalkSpeedAmount = Value end
+})
+
+MovementGroup:AddSlider('JumpPowerSlider', {
+    Text = 'Jump Power',
+    Default = 50,
+    Min = 50,
+    Max = 200,
+    Callback = function(Value) JumpPowerAmount = Value end
+})
 
 MovementGroup:AddToggle('SpeedWalk', {
     Text = 'Speed Walk',
@@ -189,10 +206,21 @@ RunService.RenderStepped:Connect(function()
             local PredictedPosition = TargetPart.Position + (TargetPart.Velocity * AimbotPrediction)
             local Camera = workspace.CurrentCamera
             local NewCFrame = CFrame.new(Camera.CFrame.Position, PredictedPosition)
-            if SilentAimEnabled then  -- Silent Aim logic
-                Camera.CFrame = CFrame.new(Camera.CFrame.Position, TargetPart.Position)
-            else
-                Camera.CFrame = Camera.CFrame:Lerp(NewCFrame, AimbotSmoothness)
+            Camera.CFrame = Camera.CFrame:Lerp(NewCFrame, AimbotSmoothness)
+        end
+    end
+
+    -- Silent Aim
+    if SilentAimEnabled and AimbotEnabled and TargetPlayer then
+        local TargetPart = TargetPlayer.Character and TargetPlayer.Character:FindFirstChild(AimbotHitPart)
+        if TargetPart then
+            local PredictedPosition = TargetPart.Position + (TargetPart.Velocity * AimbotPrediction)
+            local Camera = workspace.CurrentCamera
+            local Direction = (PredictedPosition - Camera.CFrame.Position).unit
+            local Ray = Ray.new(Camera.CFrame.Position, Direction * 999)
+            local Hit, HitPosition = workspace:FindPartOnRay(Ray, LocalPlayer.Character)
+            if Hit then
+                Mouse.Hit = CFrame.new(HitPosition)
             end
         end
     end
