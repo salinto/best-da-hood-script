@@ -47,12 +47,27 @@ FOVCircle.Visible = true
 -- Aimbot Tab Setup
 local AimbotGroup = Tabs.Aimbot:AddLeftGroupbox('Main')
 
+-- Enable Aimbot Toggle
 AimbotGroup:AddToggle('AimEnabled', {
     Text = 'Enable Aimbot',
     Default = false,
-    Callback = function(Value) AimbotEnabled = Value end
+    Callback = function(Value)
+        AimbotEnabled = Value
+    end
 })
 
+-- Aimbot Keybind (placed right under Enable Aimbot)
+AimbotGroup:AddLabel('Aimlock Keybind'):AddKeyPicker('AimLockKey', {
+    Default = 'E',
+    Mode = 'Toggle',
+    Text = 'Aimlock Key',
+    NoUI = false,
+    Callback = function(Key)
+        AimbotKey = Enum.KeyCode[Key] or Enum.KeyCode.E
+    end
+})
+
+-- FOV Slider
 AimbotGroup:AddInput('FOVInput', {
     Default = '100',
     Numeric = true,
@@ -64,6 +79,7 @@ AimbotGroup:AddInput('FOVInput', {
     end
 })
 
+-- Mode Dropdown
 AimbotGroup:AddDropdown('ModeSelect', {
     Values = {'Legit', 'Blatant'},
     Default = 1,
@@ -79,6 +95,7 @@ AimbotGroup:AddDropdown('ModeSelect', {
     end
 })
 
+-- Hit Part Dropdown
 AimbotGroup:AddDropdown('HitPartSelect', {
     Values = {'Head', 'HumanoidRootPart', 'UpperTorso', 'LowerTorso'},
     Default = 1,
@@ -86,22 +103,14 @@ AimbotGroup:AddDropdown('HitPartSelect', {
     Callback = function(Value) AimbotHitPart = Value end
 })
 
-AimbotGroup:AddLabel('Aimlock Keybind'):AddKeyPicker('AimLockKey', {
-    Default = 'E',
-    Mode = 'Toggle',
-    Text = 'Aimlock Key',
-    NoUI = false,
-    Callback = function(Key)
-        AimbotKey = Enum.KeyCode[Key] or Enum.KeyCode.E
-    end
-})
-
+-- Rapid Fire Toggle
 AimbotGroup:AddToggle('RapidFire', {
     Text = 'Enable Rapid Fire',
     Default = false,
     Callback = function(Value) RapidFire = Value end
 })
 
+-- Silent Aim Toggle
 AimbotGroup:AddToggle('SilentAim', {
     Text = 'Enable Silent Aim',
     Default = false,
