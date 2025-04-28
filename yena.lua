@@ -180,7 +180,7 @@ end
 
 -- Main RenderStepped
 RunService.RenderStepped:Connect(function()
-    -- FOV Update
+    -- FOV Update (Correct position and following mouse)
     FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y)
     FOVCircle.Radius = AimbotFOV
 
