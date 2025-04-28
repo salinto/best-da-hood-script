@@ -17,7 +17,7 @@ local Window = Library:CreateWindow({
 local Tabs = {
     Aimbot = Window:AddTab('Aimbot'),
     Visuals = Window:AddTab('Visuals'),
-    Movement = Window:AddTab('Movement') -- Movement Tab
+    Movement = Window:AddTab('Movement')
 }
 
 -- Services
@@ -38,7 +38,7 @@ local WalkSpeedAmount, JumpPowerAmount = 50, 100
 local TargetPlayer = nil
 local SilentAimEnabled = false
 
--- FOV Circle
+-- FOV Circle (Fixed Position)
 local FOVCircle = Drawing.new("Circle")
 FOVCircle.Color = Color3.fromRGB(255, 255, 255)
 FOVCircle.Thickness = 2
